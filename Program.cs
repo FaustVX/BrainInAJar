@@ -1,21 +1,100 @@
 ﻿using System.Diagnostics;
 using Spectre.Console;
 
-var brain = new Brain() { Name = AnsiConsole.Ask<string>("Brain's name ?") };
-brain.DoActivity();
+while (true)
+{
+    var brain = new Brain() { Name = AnsiConsole.Ask<string>("Brain's name ?") };
+    while (brain.Mood is not Mood.Dead)
+        switch (AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Do what ?")
+            .AddChoices([
+                ..(TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(brain.LastMoodCheck)) ? Array.Empty<string>() : ["Morning mood check"],
+                ..DateTime.Now.AddHours(-1) < brain.LastActivity ? Array.Empty<string>() : ["Do Activity"],
+                "Status"])))
+        {
+            case "Morning mood check":
+                brain.MorningMoodCheck();
+                break;
+            case "Do Activity":
+                brain.DoActivity();
+                break;
+            case "Status":
+                var grid = new Grid();
+                grid.AddColumns(2);
+                grid.AddRow(new Text("Name"), new FigletText(brain.Name));
+                grid.AddRow("Created At", brain.CreatedAt.ToString());
+                grid.AddRow("Days", brain.Days.ToString());
+                grid.AddRow("Current Date Time", DateTime.Now.ToString());
+                var lastActivity = DateTime.Now - brain.LastActivity;
+                grid.AddRow(new Text("Last Activity"), new Markup($"[{(lastActivity.TotalHours >= 1 ? "green" : "red")}]{lastActivity}[/]"));
+                grid.AddRow(new Text("Last Morning Mood Check"), new Markup($"[{LastMoodColor(brain)}]{DateTime.Now - brain.LastMoodCheck}[/]"));
+                grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
+                grid.AddRow(new Text("Food Level"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}[/]"));
+                grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}[/]"));
+                grid.AddRow(new Text("Fog"), new Markup($"[{FogColor(brain)}]{brain.Fog}[/]"));
+                grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}[/]"));
+                AnsiConsole.Write(new Panel(grid).Border(BoxBorder.Beveled));
+                break;
+
+                static string ToMoodColor(Brain brain)
+                => brain.Mood switch
+                {
+                    Mood.Dead => "bold red",
+                    Mood.Awakened => "red",
+                    Mood.Troubled => "orange",
+                    Mood.Stable => "blue",
+                    Mood.Content => "green",
+                    _ => throw new UnreachableException(),
+                };
+
+                static string LastMoodColor(Brain brain)
+                => TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(brain.LastMoodCheck) ? "on" : "green";
+
+                static string FoodLevelColor(Brain brain)
+                => brain.FoodLevel switch
+                {
+                    0 => "red",
+                    3 => "green",
+                    _ => "blue",
+                };
+
+                static string PlaysColor(Brain brain)
+                => brain.Plays switch
+                {
+                    0 => "red",
+                    2 => "green",
+                    _ => "blue",
+                };
+
+                static string FogColor(Brain brain)
+                => brain.Fog switch
+                {
+                    0 => "green",
+                    _ => "blue",
+                };
+
+                static string LoveColor(Brain brain)
+                => brain.Love switch
+                {
+                    0 => "red",
+                    _ => "green",
+                };
+        }
+}
 
 public class Brain
 {
     public required string Name { get; init; }
     public int Days { get; set; }
     public DateTime CreatedAt { get; } = DateTime.Now;
-    public DateTime LastActivity { get; set; }
-    public DateTime LastMoodCheck { get; set; }
+    public DateTime LastActivity { get; set; } = DateTime.Now.AddHours(-1);
+    public DateTime LastMoodCheck { get; set; } = DateTime.Now;
     public Mood Mood
     {
         get; set
         {
-            if (value < Mood.Awakened || field is Mood.Awakened)
+            if (value is Mood.Dead)
+                field = value;
+            else if (value < Mood.Awakened || field is Mood.Awakened)
                 field = Mood.Awakened;
             else if (value > Mood.Content)
                 field = Mood.Content;
@@ -58,6 +137,7 @@ public class Brain
                 break;
             case (1, 1) when Mood is Mood.Awakened:
                 AnsiConsole.MarkupLineInterpolated($"Unfortunately you rolled 2 [red]1[/]'s, and also you are already [red]{Mood}[/], you [red bold]die[/]");
+                Mood = Mood.Dead;
                 return;
             case (1, 1):
                 Mood -= 2;
@@ -77,6 +157,7 @@ public class Brain
                         break;
                     case <= 5 when Mood is Mood.Awakened:
                         AnsiConsole.MarkupLineInterpolated($"You mood goes down by [red]1[/] but you are already [red]{Mood}[/], you [red bold]die[/]");
+                        Mood = Mood.Dead;
                         return;
                     case <= 5:
                         Mood -= 1;
@@ -88,6 +169,7 @@ public class Brain
                 }
                 break;
         }
+        LastMoodCheck = DateTime.Now;
         Fog = Days++;
     }
 
@@ -98,7 +180,11 @@ public class Brain
             AnsiConsole.MarkupLineInterpolated($"[red]You should wait at least [italic blue]1 hour[/] after the last activity tried[/] ([blue]{LastActivity - DateTime.Now.AddHours(-1)}[/] remaining)");
             return;
         }
-        var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>().Title("Select the activity").AddChoices([..FoodLevel >= 3 ? Array.Empty<Activity>() : [Activity.Eat], ..Fog <= 0 ? Array.Empty<Activity>() : [Activity.Clean], ..Mood is Mood.Awakened ? Array.Empty<Activity>() : [Activity.Play]]));
+        var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>().Title("Select the activity")
+            .AddChoices([
+                ..FoodLevel >= 3 ? Array.Empty<Activity>() : [Activity.Eat],
+                ..Fog <= 0 ? Array.Empty<Activity>() : [Activity.Clean],
+                ..Mood is Mood.Awakened ? Array.Empty<Activity>() : [Activity.Play]]));
         var numDice = Mood switch
         {
             Mood.Content => 6,
@@ -146,6 +232,7 @@ public class Brain
 
 public enum Mood
 {
+    Dead = -1,
     None,
     Awakened,
     Troubled,
