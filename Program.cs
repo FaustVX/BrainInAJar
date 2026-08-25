@@ -28,10 +28,10 @@ while (true)
                 grid.AddRow(new Text("Last Activity"), new Markup($"[{(lastActivity.TotalHours >= 1 ? "green" : "red")}]{lastActivity}[/]"));
                 grid.AddRow(new Text("Last Morning Mood Check"), new Markup($"[{LastMoodColor(brain)}]{DateTime.Now - brain.LastMoodCheck}[/]"));
                 grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
-                grid.AddRow(new Text("Food Level"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}[/]"));
-                grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}[/]"));
-                grid.AddRow(new Text("Fog"), new Markup($"[{FogColor(brain)}]{brain.Fog}[/]"));
-                grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}[/]"));
+                grid.AddRow(new Text("Food Level"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]"));
+                grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}/2[/]"));
+                grid.AddRow(new Text("Fog"), new Markup($"[{FogColor(brain)}]{brain.Fog}/{brain.Days}[/]"));
+                grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}/1[/]"));
                 AnsiConsole.Write(new Panel(grid).Border(BoxBorder.Beveled));
                 break;
 
