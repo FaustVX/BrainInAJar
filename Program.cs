@@ -5,7 +5,9 @@ while (true)
 {
     var brain = new Brain() { Name = AnsiConsole.Ask<string>("Brain's name ?") };
     while (brain.Mood is not Mood.Dead)
-        switch (AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Do what ?")
+        switch (AnsiConsole.Prompt(new SelectionPrompt<string>()
+            .Title("Do what ?")
+            .WrapAround()
             .AddChoices([
                 ..(TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(brain.LastMoodCheck)) ? Array.Empty<string>() : ["Morning mood check"],
                 ..DateTime.Now.AddHours(-1) < brain.LastActivity ? Array.Empty<string>() : ["Do Activity"],
@@ -180,7 +182,9 @@ public class Brain
             AnsiConsole.MarkupLineInterpolated($"[red]You should wait at least [italic blue]1 hour[/] after the last activity tried[/] ([blue]{LastActivity - DateTime.Now.AddHours(-1)}[/] remaining)");
             return;
         }
-        var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>().Title("Select the activity")
+        var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>()
+            .Title("Select the activity")
+            .WrapAround()
             .AddChoices([
                 ..FoodLevel >= 3 ? Array.Empty<Activity>() : [Activity.Eat],
                 ..Fog <= 0 ? Array.Empty<Activity>() : [Activity.Clean],
@@ -201,6 +205,7 @@ public class Brain
             .Title($"Select [blue]1st[/] die")
             .AddChoices(dice.Index())
             .AddCancelResult((0, 0))
+            .WrapAround()
             .UseConverter(t => t.Item2.ToString()));
         if (die1 is (0, 0))
             goto ReselectDice;
@@ -208,6 +213,7 @@ public class Brain
             .Title($"Select [blue]2nd[/] die ([green]{die1.Item2}[/])")
             .AddChoices(dice.Index().Except([die1]))
             .AddCancelResult((0, 0))
+            .WrapAround()
             .UseConverter(t => t.Item2.ToString()));
         if (die2 is (0, 0))
             goto ReselectDice;
@@ -217,6 +223,7 @@ public class Brain
             .Title($"Select [blue]3rd[/] die")
             .AddChoices(dice.Index().Except([die1, die2]))
             .AddCancelResult((0, 0))
+            .WrapAround()
             .UseConverter(t => t.Item2.ToString()));
         if (die3 is (0, 0))
             goto ReselectDice;
@@ -224,6 +231,7 @@ public class Brain
             .Title($"Select [blue]4th[/] die ([green]{die3.Item2}[/])")
             .AddChoices(dice.Index().Except([die1, die2, die3]))
             .AddCancelResult((0, 0))
+            .WrapAround()
             .UseConverter(t => t.Item2.ToString()));
         if (die4 is (0, 0))
             goto ReselectDice;
