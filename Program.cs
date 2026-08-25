@@ -179,9 +179,17 @@ public class Brain
 
     public void DoActivity()
     {
+        var errors = (wait1hour: false, nothingToDo: false);
         if (DateTime.Now.AddHours(-1) < LastActivity)
+            errors.wait1hour = true;
+        if (FoodLevel >= 3 && Fog <= 0 && (Mood is <= Mood.Awakened || Plays >= 2))
+            errors.nothingToDo = true;
+        if (errors is not (false, false))
         {
-            AnsiConsole.MarkupLineInterpolated($"[red]You should wait at least [italic blue]1 hour[/] after the last activity tried[/] ([blue]{LastActivity - DateTime.Now.AddHours(-1)}[/] remaining)");
+            if (errors.wait1hour)
+                AnsiConsole.MarkupLineInterpolated($"[red]You should wait at least [italic blue]1 hour[/] after the last activity tried[/] ([blue]{LastActivity - DateTime.Now.AddHours(-1)}[/] remaining)");
+            if (errors.nothingToDo)
+                AnsiConsole.MarkupLine("[red]You have nothing to do today, come back tomorrow[/]");
             return;
         }
         var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>()
@@ -190,7 +198,7 @@ public class Brain
             .AddChoices([
                 ..FoodLevel >= 3 ? Array.Empty<Activity>() : [Activity.Eat],
                 ..Fog <= 0 ? Array.Empty<Activity>() : [Activity.Clean],
-                ..Mood is Mood.Awakened || Plays >= 2 ? Array.Empty<Activity>() : [Activity.Play]]));
+                ..Mood is <= Mood.Awakened || Plays >= 2 ? Array.Empty<Activity>() : [Activity.Play]]));
         var numDice = Mood switch
         {
             Mood.Content => 6,
