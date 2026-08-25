@@ -200,13 +200,15 @@ public class Brain
         var die1 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
             .Title($"Select [blue]1st[/] die")
             .AddChoices(dice.Index())
-            .AddCancelResult((0, 0)));
+            .AddCancelResult((0, 0))
+            .UseConverter(t => t.Item2.ToString()));
         if (die1 is (0, 0))
             goto ReselectDice;
         var die2 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
             .Title($"Select [blue]2nd[/] die ([green]{die1.Item2}[/])")
             .AddChoices(dice.Index().Except([die1]))
-            .AddCancelResult((0, 0)));
+            .AddCancelResult((0, 0))
+            .UseConverter(t => t.Item2.ToString()));
         if (die2 is (0, 0))
             goto ReselectDice;
         var reach = die1.Item2 + die2.Item2;
@@ -214,13 +216,15 @@ public class Brain
         var die3 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
             .Title($"Select [blue]3rd[/] die")
             .AddChoices(dice.Index().Except([die1, die2]))
-            .AddCancelResult((0, 0)));
+            .AddCancelResult((0, 0))
+            .UseConverter(t => t.Item2.ToString()));
         if (die3 is (0, 0))
             goto ReselectDice;
         var die4 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
             .Title($"Select [blue]4th[/] die ([green]{die3.Item2}[/])")
             .AddChoices(dice.Index().Except([die1, die2, die3]))
-            .AddCancelResult((0, 0)));
+            .AddCancelResult((0, 0))
+            .UseConverter(t => t.Item2.ToString()));
         if (die4 is (0, 0))
             goto ReselectDice;
         var success = die3.Item2 + die4.Item2 == reach;
