@@ -196,12 +196,33 @@ public class Brain
         AnsiConsole.MarkupLine($"You will play the dice game with [underline italic blue]{Name}[/] for [green]{activity}[/] with [green]{numDice}[/] dice because you are [underline italic blue]{Mood}[/]");
         var dice = Random.Shared.GetItems([1, 2, 3, 4, 5, 6], numDice);
         AnsiConsole.MarkupLine("your dice: [green]" + Ext.Join("[/], [green]", "[/] and [green]", dice) + "[/]");
-        var die1 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>().Title($"Select [blue]1st[/] die").AddChoices(dice.Index()));
-        var die2 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>().Title($"Select [blue]2nd[/] die ([green]{die1.Item2}[/])").AddChoices(dice.Index().Except([die1])));
+        ReselectDice:
+        var die1 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
+            .Title($"Select [blue]1st[/] die")
+            .AddChoices(dice.Index())
+            .AddCancelResult((0, 0)));
+        if (die1 is (0, 0))
+            goto ReselectDice;
+        var die2 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
+            .Title($"Select [blue]2nd[/] die ([green]{die1.Item2}[/])")
+            .AddChoices(dice.Index().Except([die1]))
+            .AddCancelResult((0, 0)));
+        if (die2 is (0, 0))
+            goto ReselectDice;
         var reach = die1.Item2 + die2.Item2;
         AnsiConsole.MarkupLine($"sum to reach: [green]{reach}[/]");
-        var die3 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>().Title($"Select [blue]3rd[/] die").AddChoices(dice.Index().Except([die1, die2])));
-        var die4 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>().Title($"Select [blue]4th[/] die ([green]{die3.Item2}[/])").AddChoices(dice.Index().Except([die1, die2, die3])));
+        var die3 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
+            .Title($"Select [blue]3rd[/] die")
+            .AddChoices(dice.Index().Except([die1, die2]))
+            .AddCancelResult((0, 0)));
+        if (die3 is (0, 0))
+            goto ReselectDice;
+        var die4 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
+            .Title($"Select [blue]4th[/] die ([green]{die3.Item2}[/])")
+            .AddChoices(dice.Index().Except([die1, die2, die3]))
+            .AddCancelResult((0, 0)));
+        if (die4 is (0, 0))
+            goto ReselectDice;
         var success = die3.Item2 + die4.Item2 == reach;
         if (success)
         {
