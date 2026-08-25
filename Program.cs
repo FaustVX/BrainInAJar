@@ -184,7 +184,7 @@ public class Brain
             .AddChoices([
                 ..FoodLevel >= 3 ? Array.Empty<Activity>() : [Activity.Eat],
                 ..Fog <= 0 ? Array.Empty<Activity>() : [Activity.Clean],
-                ..Mood is Mood.Awakened ? Array.Empty<Activity>() : [Activity.Play]]));
+                ..Mood is Mood.Awakened || Plays >= 2 ? Array.Empty<Activity>() : [Activity.Play]]));
         var numDice = Mood switch
         {
             Mood.Content => 6,
