@@ -55,8 +55,10 @@ while (true)
                 => brain.FoodLevel switch
                 {
                     0 => "red",
+                    1 => "darkOrange",
+                    2 => "blue",
                     3 => "green",
-                    _ => "blue",
+                    _ => throw new UnreachableException(),
                 };
 
                 static string PlaysColor(Brain brain)
