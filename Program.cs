@@ -34,19 +34,22 @@ while (true)
                 brain = GetOrCreateBrain();
                 var grid = new Grid();
                 grid.AddColumns(2);
-                grid.AddRow(new Text("Name"), new FigletText(brain.Name));
                 grid.AddRow("Created At", brain.CreatedAt.ToString());
                 grid.AddRow("Days", brain.Days.ToString());
                 grid.AddRow("Current Date Time", DateTime.Now.ToString());
                 var lastActivity = DateTime.Now - brain.LastActivity;
                 grid.AddRow(new Text("Last Activity"), new Markup($"[{(lastActivity.TotalHours >= 1 ? "green" : "red")}]{lastActivity}[/]"));
-                grid.AddRow(new Text("Last Morning Mood Check"), new Markup($"[{LastMoodColor(brain)}]{DateTime.Now - brain.LastMoodCheck}[/]"));
+                grid.AddRow(new Text("Last Mood Check"), new Markup($"[{LastMoodColor(brain)}]{DateTime.Now - brain.LastMoodCheck}[/]"));
                 grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
                 grid.AddRow(new Text("Food"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]\n[{MealColor(brain.Breakfast)}]Breakfast[/]-[{MealColor(brain.Lunch)}]Lunch[/]-[{MealColor(brain.Dinner)}]Dinner[/]"));
                 grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}/2[/]"));
                 grid.AddRow(new Text("Fog"), new Markup($"[{FogColor(brain)}]{brain.Fog}/{brain.Days}[/]"));
                 grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}/1[/]"));
-                AnsiConsole.Write(new Panel(grid).Border(BoxBorder.Beveled));
+                var outer = new Grid();
+                outer.AddColumns(1);
+                outer.AddRow(new FigletText(brain.Name));
+                outer.AddRow(grid);
+                AnsiConsole.Write(new Panel(outer).Border(BoxBorder.Beveled));
                 break;
 
                 static string ToMoodColor(Brain brain)
