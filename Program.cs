@@ -30,7 +30,7 @@ while (true)
                 grid.AddRow(new Text("Last Activity"), new Markup($"[{(lastActivity.TotalHours >= 1 ? "green" : "red")}]{lastActivity}[/]"));
                 grid.AddRow(new Text("Last Morning Mood Check"), new Markup($"[{LastMoodColor(brain)}]{DateTime.Now - brain.LastMoodCheck}[/]"));
                 grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
-                grid.AddRow(new Text("Food Level"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]"));
+                grid.AddRow(new Text("Food"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]\n[{MealColor(brain.Breakfast)}]Breakfast[/]-[{MealColor(brain.Lunch)}]Lunch[/]-[{MealColor(brain.Dinner)}]Dinner[/]"));
                 grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}/2[/]"));
                 grid.AddRow(new Text("Fog"), new Markup($"[{FogColor(brain)}]{brain.Fog}/{brain.Days}[/]"));
                 grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}/1[/]"));
@@ -60,6 +60,9 @@ while (true)
                     3 => "green",
                     _ => throw new UnreachableException(),
                 };
+
+                static string MealColor(bool meal)
+                => meal ? "green" : "on";
 
                 static string PlaysColor(Brain brain)
                 => brain.Plays switch
@@ -106,7 +109,36 @@ public class Brain
                 field = value;
         }
     } = Mood.Content;
-    public int FoodLevel { get; set; }
+    public bool Breakfast { get; set; }
+    public bool Lunch { get; set; }
+    public bool Dinner { get; set; }
+    public int FoodLevel => (Breakfast ? 1 : 0) + (Lunch ? 1 : 0) + (Dinner ? 1 : 0);
+    public bool this[Meal meal]
+    {
+        get => meal switch {
+            Meal.Breakfast => Breakfast,
+            Meal.Lunch => Lunch,
+            Meal.Dinner => Dinner,
+            _ => throw new UnreachableException(),
+        };
+        set
+        {
+            switch (meal)
+            {
+                case Meal.Breakfast:
+                    Breakfast = value;
+                    break;
+                case Meal.Lunch:
+                    Lunch = value;
+                    break;
+                case Meal.Dinner:
+                    Dinner = value;
+                    break;
+                default:
+                    throw new UnreachableException();
+            }
+        }
+    }
     public int Plays { get; set; }
     public int Fog { get; set; }
     public int Love => FoodLevel == 3 && Plays == 2 && Fog == 0 ? 1 : 0;
@@ -192,13 +224,20 @@ public class Brain
                 AnsiConsole.MarkupLine("[red]You have nothing to do today, come back tomorrow[/]");
             return;
         }
+        var meal = TimeOnly.FromDateTime(DateTime.Now) switch
+        {
+            { Hour: < 12 } => Meal.Breakfast,
+            { Hour: >= 18 } => Meal.Dinner,
+            _ => Meal.Lunch,
+        };
         var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>()
             .Title("Select the activity")
             .WrapAround()
             .AddChoices([
-                ..FoodLevel >= 3 ? Array.Empty<Activity>() : [Activity.Eat],
+                ..this[meal] ? Array.Empty<Activity>() : [Activity.Eat],
                 ..Fog <= 0 ? Array.Empty<Activity>() : [Activity.Clean],
-                ..Mood is <= Mood.Awakened || Plays >= 2 ? Array.Empty<Activity>() : [Activity.Play]]));
+                ..Mood is <= Mood.Awakened || Plays >= 2 ? Array.Empty<Activity>() : [Activity.Play]])
+                .UseConverter(a => a is Activity.Eat ? $"Eat {meal}" : a.ToString()));
         var numDice = Mood switch
         {
             Mood.Content => 6,
@@ -207,7 +246,7 @@ public class Brain
             _ => throw new UnreachableException(),
         };
         AfterClean:
-        AnsiConsole.MarkupLine($"You will play the dice game with [underline italic blue]{Name}[/] for [green]{activity}[/] with [green]{numDice}[/] dice because you are [underline italic blue]{Mood}[/]");
+        AnsiConsole.MarkupLine($"You will play the dice game with [underline italic blue]{Name}[/] to [green]{(activity is Activity.Eat ? $"Eat {meal}" : activity)}[/] with [green]{numDice}[/] dice because you are [underline italic blue]{Mood}[/]");
         var dice = Random.Shared.GetItems([1, 2, 3, 4, 5, 6], numDice);
         AnsiConsole.MarkupLine("your dice: [green]" + Ext.Join("[/], [green]", "[/] and [green]", dice) + "[/]");
         ReselectDice:
@@ -252,7 +291,7 @@ public class Brain
             switch (activity)
             {
                 case Activity.Eat:
-                    FoodLevel++;
+                    this[meal] = true;
                     AnsiConsole.MarkupLine($"Food: [blue]{FoodLevel}[/]");
                     break;
                 case Activity.Clean:
@@ -288,6 +327,13 @@ public enum Activity
     Eat,
     Play,
     Clean,
+}
+
+public enum Meal
+{
+    Breakfast,
+    Lunch,
+    Dinner,
 }
 
 file class Ext
