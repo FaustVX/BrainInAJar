@@ -5,21 +5,28 @@ while (true)
 {
     var brain = new Brain() { Name = AnsiConsole.Ask<string>("Brain's name ?") };
     while (brain.Mood is not Mood.Dead)
-        switch (AnsiConsole.Prompt(new SelectionPrompt<string>()
+        switch (AnsiConsole.Prompt(new SelectionPrompt<Action>()
             .Title("Do what ?")
             .WrapAround()
             .AddChoices([
-                ..(TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(brain.LastMoodCheck)) ? Array.Empty<string>() : ["Morning mood check"],
-                ..DateTime.Now.AddHours(-1) < brain.LastActivity ? Array.Empty<string>() : ["Do Activity"],
-                "Status"])))
+                ..(TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(brain.LastMoodCheck)) ? Array.Empty<Action>() : [Action.MoodCheck],
+                ..DateTime.Now.AddHours(-1) < brain.LastActivity ? Array.Empty<Action>() : [Action.Activity],
+                Action.Status])
+                .UseConverter(a => a switch
+                {
+                    Action.MoodCheck => "Morning mood check",
+                    Action.Activity => "Do activity",
+                    Action.Status => "Show status",
+                    _ => throw new UnreachableException(),
+                })))
         {
-            case "Morning mood check":
+            case Action.MoodCheck:
                 brain.MorningMoodCheck();
                 break;
-            case "Do Activity":
+            case Action.Activity:
                 brain.DoActivity();
                 break;
-            case "Status":
+            case Action.Status:
                 var grid = new Grid();
                 grid.AddColumns(2);
                 grid.AddRow(new Text("Name"), new FigletText(brain.Name));
@@ -334,6 +341,13 @@ public enum Meal
     Breakfast,
     Lunch,
     Dinner,
+}
+
+public enum Action
+{
+    MoodCheck,
+    Activity,
+    Status,
 }
 
 file class Ext
