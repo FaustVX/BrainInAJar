@@ -284,11 +284,14 @@ public class Brain
         var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>()
             .Title("Select the activity")
             .WrapAround()
+            .AddCancelResult((Activity)(-1))
             .AddChoices([
                 ..this[meal] ? Array.Empty<Activity>() : [Activity.Eat],
                 ..Fog <= 0 ? Array.Empty<Activity>() : [Activity.Clean],
                 ..Mood is <= Mood.Awakened || Plays >= 2 ? Array.Empty<Activity>() : [Activity.Play]])
                 .UseConverter(a => a is Activity.Eat ? $"Eat {meal}" : a.ToString()));
+        if (activity is (Activity)(-1))
+            return;
         var numDice = Mood switch
         {
             Mood.Content => 6,
