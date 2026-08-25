@@ -31,6 +31,7 @@ while (true)
                 Save(brain);
                 break;
             case Action.Status:
+                brain = GetOrCreateBrain();
                 var grid = new Grid();
                 grid.AddColumns(2);
                 grid.AddRow(new Text("Name"), new FigletText(brain.Name));
