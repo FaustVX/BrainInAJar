@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Spectre.Console;
 
 while (true)
 {
-    var brain = new Brain() { Name = AnsiConsole.Ask<string>("Brain's name ?") };
+    var brain = GetOrCreateBrain();
     while (brain.Mood is not Mood.Dead)
         switch (AnsiConsole.Prompt(new SelectionPrompt<Action>()
             .Title("Do what ?")
@@ -22,9 +24,11 @@ while (true)
         {
             case Action.MoodCheck:
                 brain.MorningMoodCheck();
+                Save(brain);
                 break;
             case Action.Activity:
                 brain.DoActivity();
+                Save(brain);
                 break;
             case Action.Status:
                 var grid = new Grid();
@@ -95,11 +99,50 @@ while (true)
         }
 }
 
+static Brain GetOrCreateBrain()
+{
+    try
+    {
+        using var stream = File.Open("Brain.json", FileMode.Open, FileAccess.Read, FileShare.Read);
+        return JsonSerializer.Deserialize<Brain>(stream, new JsonSerializerOptions(JsonSerializerDefaults.General)
+        {
+            AllowTrailingCommas = true,
+            IgnoreReadOnlyProperties = true,
+            Converters =
+            {
+                new JsonStringEnumConverter(),
+            },
+            WriteIndented = true,
+        })!;
+    }
+    catch
+    {
+        var brain = new Brain() { Name = AnsiConsole.Ask<string>("Brain's name ?") };
+        Save(brain);
+        return brain;
+    }
+}
+
+static void Save(Brain brain)
+{
+    using var stream = File.Open("Brain.json", FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+    JsonSerializer.Serialize(stream, brain, new JsonSerializerOptions(JsonSerializerDefaults.General)
+    {
+        AllowTrailingCommas = true,
+        IgnoreReadOnlyProperties = true,
+        Converters =
+        {
+            new JsonStringEnumConverter(),
+        },
+        WriteIndented = true,
+    });
+}
+
 public class Brain
 {
     public required string Name { get; init; }
     public int Days { get; set; }
-    public DateTime CreatedAt { get; } = DateTime.Now;
+    public DateTime CreatedAt { get; init; } = DateTime.Now;
     public DateTime LastActivity { get; set; } = DateTime.Now.AddHours(-1);
     public DateTime LastMoodCheck { get; set; } = DateTime.Now;
     public Mood Mood
