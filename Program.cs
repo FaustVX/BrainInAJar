@@ -20,7 +20,8 @@ while (true)
                     Action.Activity => "Do activity",
                     Action.Status => "Show status",
                     _ => throw new UnreachableException(),
-                })))
+                })
+                .DefaultValue(Action.Status)))
         {
             case Action.MoodCheck:
                 brain.MorningMoodCheck();
