@@ -167,6 +167,12 @@ public class Brain
     public bool Lunch { get; set; }
     public bool Dinner { get; set; }
     public int FoodLevel => (Breakfast ? 1 : 0) + (Lunch ? 1 : 0) + (Dinner ? 1 : 0);
+    public static Meal CurrentMeal => TimeOnly.FromDateTime(DateTime.Now) switch
+    {
+        { Hour: < 12 } => Meal.Breakfast,
+        { Hour: >= 18 } => Meal.Dinner,
+        _ => Meal.Lunch,
+    };
     public bool this[Meal meal]
     {
         get => meal switch {
@@ -268,31 +274,25 @@ public class Brain
         var errors = (wait1hour: false, nothingToDo: false);
         if (DateTime.Now.AddHours(-1) < LastActivity)
             errors.wait1hour = true;
-        if (FoodLevel >= 3 && Fog <= 0 && (Mood is <= Mood.Awakened || Plays >= 2))
+        if (this[CurrentMeal] && Fog <= 0 && (Mood is <= Mood.Awakened || Plays >= 2))
             errors.nothingToDo = true;
         if (errors is not (false, false))
         {
             if (errors.wait1hour)
                 AnsiConsole.MarkupLineInterpolated($"[red]You should wait at least [italic blue]1 hour[/] after the last activity tried[/] ([blue]{LastActivity - DateTime.Now.AddHours(-1)}[/] remaining)");
             if (errors.nothingToDo)
-                AnsiConsole.MarkupLine("[red]You have nothing to do today, come back tomorrow[/]");
+                AnsiConsole.MarkupLine("[red]You have nothing to do today, come back later[/]");
             return;
         }
-        var meal = TimeOnly.FromDateTime(DateTime.Now) switch
-        {
-            { Hour: < 12 } => Meal.Breakfast,
-            { Hour: >= 18 } => Meal.Dinner,
-            _ => Meal.Lunch,
-        };
         var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>()
             .Title("Select the activity")
             .WrapAround()
             .AddCancelResult((Activity)(-1))
             .AddChoices([
-                ..this[meal] ? Array.Empty<Activity>() : [Activity.Eat],
+                ..this[CurrentMeal] ? Array.Empty<Activity>() : [Activity.Eat],
                 ..Fog <= 0 ? Array.Empty<Activity>() : [Activity.Clean],
                 ..Mood is <= Mood.Awakened || Plays >= 2 ? Array.Empty<Activity>() : [Activity.Play]])
-                .UseConverter(a => a is Activity.Eat ? $"Eat {meal}" : a.ToString()));
+                .UseConverter(a => a is Activity.Eat ? $"Eat {CurrentMeal}" : a.ToString()));
         if (activity is (Activity)(-1))
             return;
         var numDice = Mood switch
@@ -303,7 +303,7 @@ public class Brain
             _ => throw new UnreachableException(),
         };
         AfterClean:
-        AnsiConsole.MarkupLine($"You will play the dice game with [underline italic blue]{Name}[/] to [green]{(activity is Activity.Eat ? $"Eat {meal}" : activity)}[/] with [green]{numDice}[/] dice because you are [underline italic blue]{Mood}[/]");
+        AnsiConsole.MarkupLine($"You will play the dice game with [underline italic blue]{Name}[/] to [green]{(activity is Activity.Eat ? $"Eat {CurrentMeal}" : activity)}[/] with [green]{numDice}[/] dice because you are [underline italic blue]{Mood}[/]");
         var dice = Random.Shared.GetItems([1, 2, 3, 4, 5, 6], numDice);
         AnsiConsole.MarkupLine("your dice: [green]" + Ext.Join("[/], [green]", "[/] and [green]", dice) + "[/]");
         ReselectDice:
@@ -348,7 +348,7 @@ public class Brain
             switch (activity)
             {
                 case Activity.Eat:
-                    this[meal] = true;
+                    this[CurrentMeal] = true;
                     AnsiConsole.MarkupLine($"Food: [blue]{FoodLevel}[/]");
                     break;
                 case Activity.Clean:
