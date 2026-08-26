@@ -301,7 +301,9 @@ public class Brain
                 break;
         }
         LastMoodCheck = DateTime.Now;
-        Fog = Days++;
+        Breakfast = Lunch = Dinner = false;
+        Plays = 0;
+        Fog = Days += 1;
     }
 
     public void DoActivity()
