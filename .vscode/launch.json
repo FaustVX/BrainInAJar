@@ -7,8 +7,12 @@
         {
             "name": "C#: Launch Startup Project",
             "type": "dotnet",
-            "request": "launch",
-            "terminal": "external"
+            "request": "launch"
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
         }
     ]
 }

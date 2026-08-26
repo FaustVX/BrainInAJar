@@ -1,11 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
 
 while (true)
 {
-    var brain = GetOrCreateBrain();
+    var (brain, history) = GetOrCreateBrain();
     while (brain.Mood is not Mood.Dead)
         switch (AnsiConsole.Prompt(new SelectionPrompt<Action>()
             .Title("Do what ?")
@@ -13,26 +14,32 @@ while (true)
             .AddChoices([
                 ..brain.MoodCheckUnavailable ? Array.Empty<Action>() : [Action.MoodCheck],
                 ..brain.ActivityUnavailable ? Array.Empty<Action>() : [Action.Activity],
-                Action.Status])
+                Action.Status, Action.History])
                 .UseConverter(a => a switch
                 {
                     Action.MoodCheck => "Morning mood check",
                     Action.Activity => "Do activity",
                     Action.Status => "Show status",
+                    Action.History => $"Show history ({history.Length} deaths, so far ...)",
                     _ => throw new UnreachableException(),
                 })
                 .DefaultValue(Action.Status)))
         {
             case Action.MoodCheck:
                 brain.MorningMoodCheck();
-                Save(brain);
+                if (brain.Mood is Mood.Dead)
+                {
+                    history = [new(brain.Name, brain.CreatedAt, brain.Days), ..history];
+                    brain = new() { Name = AnsiConsole.Ask<string>("Your brain is [red bold]dead[/]. What is your new brain's name ?") };
+                }
+                Save(new(brain, history));
                 break;
             case Action.Activity:
                 brain.DoActivity();
-                Save(brain);
+                Save(new(brain, history));
                 break;
             case Action.Status:
-                brain = GetOrCreateBrain();
+                (brain, history) = GetOrCreateBrain();
                 var grid = new Grid();
                 grid.AddColumns(2);
                 grid.AddRow("Created At", brain.CreatedAt.ToString());
@@ -101,15 +108,38 @@ while (true)
                     0 => "red",
                     _ => "green",
                 };
+            case Action.History:
+                var list = new Columns(history.Select(d =>
+                {
+                    var grid = new Grid();
+                    grid.AddColumns(2);
+                    grid.AddRow("Name", d.Name);
+                    grid.AddRow("CreatedAt", $"{d.CreatedAt:d} {d.CreatedAt:t}");
+                    grid.AddRow("Days", $"[{DaysColor(d.Days)}]{d.Days}[/]");
+                    return new Panel(grid).Border(BoxBorder.Beveled);
+                }));
+                AnsiConsole.Write(list);
+                break;
+
+                static string DaysColor(int days)
+                => days switch
+                {
+                    < 6 => "red",
+                    <= 10 => "darkOrange",
+                    <= 20 => "blue",
+                    <= 30 => "green",
+                    _ => "gold1",
+                };
         }
 }
 
-static Brain GetOrCreateBrain()
+static Data GetOrCreateBrain()
 {
     try
     {
-        using var stream = File.Open("Brain.json", FileMode.Open, FileAccess.Read, FileShare.Read);
-        return JsonSerializer.Deserialize<Brain>(stream, new JsonSerializerOptions(JsonSerializerDefaults.General)
+        Directory.CreateDirectory("save");
+        using var stream = File.Open("save/BrainInAJar.json", FileMode.Open, FileAccess.Read, FileShare.Read);
+        return JsonSerializer.Deserialize<Data>(stream, new JsonSerializerOptions(JsonSerializerDefaults.General)
         {
             AllowTrailingCommas = true,
             IgnoreReadOnlyProperties = true,
@@ -123,15 +153,17 @@ static Brain GetOrCreateBrain()
     catch
     {
         var brain = new Brain() { Name = AnsiConsole.Ask<string>("Brain's name ?") };
-        Save(brain);
-        return brain;
+        var data = new Data(brain, []);
+        Save(data);
+        return data;
     }
 }
 
-static void Save(Brain brain)
+static void Save(Data data)
 {
-    using var stream = File.Open("Brain.json", FileMode.Create, FileAccess.Write, FileShare.Read);
-    JsonSerializer.Serialize(stream, brain, new JsonSerializerOptions(JsonSerializerDefaults.General)
+    Directory.CreateDirectory("save");
+    using var stream = File.Open("save/BrainInAJar.json", FileMode.Create, FileAccess.Write, FileShare.Read);
+    JsonSerializer.Serialize(stream, data, new JsonSerializerOptions(JsonSerializerDefaults.General)
     {
         AllowTrailingCommas = true,
         IgnoreReadOnlyProperties = true,
@@ -372,6 +404,10 @@ public class Brain
     }
 }
 
+public record class Data(Brain Brain, ImmutableArray<Death> Deaths);
+
+public record class Death(string Name, DateTime CreatedAt, int Days);
+
 public enum Mood
 {
     Dead = -1,
@@ -401,6 +437,7 @@ public enum Action
     MoodCheck,
     Activity,
     Status,
+    History,
 }
 
 file class Ext
