@@ -129,7 +129,7 @@ static Brain GetOrCreateBrain()
 
 static void Save(Brain brain)
 {
-    using var stream = File.Open("Brain.json", FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+    using var stream = File.Open("Brain.json", FileMode.Create, FileAccess.Write, FileShare.Read);
     JsonSerializer.Serialize(stream, brain, new JsonSerializerOptions(JsonSerializerDefaults.General)
     {
         AllowTrailingCommas = true,
