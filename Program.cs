@@ -11,8 +11,8 @@ while (true)
             .Title("Do what ?")
             .WrapAround()
             .AddChoices([
-                ..(TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(brain.LastMoodCheck)) ? Array.Empty<Action>() : [Action.MoodCheck],
-                ..DateTime.Now.AddHours(-1) < brain.LastActivity ? Array.Empty<Action>() : [Action.Activity],
+                ..brain.MoodCheckUnavailable ? Array.Empty<Action>() : [Action.MoodCheck],
+                ..brain.ActivityUnavailable ? Array.Empty<Action>() : [Action.Activity],
                 Action.Status])
                 .UseConverter(a => a switch
                 {
@@ -148,7 +148,9 @@ public class Brain
     public int Days { get; set; }
     public DateTime CreatedAt { get; init; } = DateTime.Now;
     public DateTime LastActivity { get; set; } = DateTime.Now.AddHours(-1);
+    public bool ActivityUnavailable => DateTime.Now.AddHours(-1) < LastActivity || this[CurrentMeal] && Fog <= 0 && (Mood is <= Mood.Awakened || Plays >= 2);
     public DateTime LastMoodCheck { get; set; } = DateTime.Now;
+    public bool MoodCheckUnavailable => TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(LastMoodCheck);
     public Mood Mood
     {
         get; set
