@@ -14,13 +14,14 @@ while (true)
             .AddChoices([
                 ..brain.MoodCheckUnavailable ? Array.Empty<Action>() : [Action.MoodCheck],
                 ..brain.ActivityUnavailable ? Array.Empty<Action>() : [Action.Activity],
-                Action.Status, Action.History])
+                Action.Status, Action.History, Action.ManualEntry])
                 .UseConverter(a => a switch
                 {
                     Action.MoodCheck => "Morning mood check",
                     Action.Activity => "Do activity",
                     Action.Status => "Show status",
                     Action.History => $"Show history ({history.Length} deaths, so far ...)",
+                    Action.ManualEntry => "Manual entry",
                     _ => throw new UnreachableException(),
                 })
                 .DefaultValue(Action.Status)))
@@ -130,6 +131,59 @@ while (true)
                     <= 30 => "green",
                     _ => "gold1",
                 };
+            case Action.ManualEntry:
+                Edit(brain, history);
+
+                static void Edit(Brain brain, ImmutableArray<Death> history)
+                {
+                    switch (AnsiConsole.Prompt(new SelectionPrompt<ManualEntry>()
+                        .Title("Select which field to edit")
+                        .AddChoices([ManualEntry.Breakfast, ManualEntry.Lunch, ManualEntry.Dinner, ManualEntry.Plays, ManualEntry.Fog])
+                        .WrapAround()
+                        .AddCancelResult((ManualEntry)(-1))))
+                    {
+                        case ManualEntry.Breakfast:
+                        {
+                            (brain.Breakfast, var original) = (AnsiConsole.Confirm("Breakfast", brain.Breakfast), brain.Breakfast);
+                            if (brain.Breakfast == original)
+                                return;
+                            break;
+                        }
+                        case ManualEntry.Lunch:
+                        {
+                            (brain.Lunch, var original) = (AnsiConsole.Confirm("Lunch", brain.Lunch), brain.Lunch);
+                            if (brain.Lunch == original)
+                                return;
+                            break;
+                        }
+                        case ManualEntry.Dinner:
+                        {
+                            (brain.Dinner, var original) = (AnsiConsole.Confirm("Dinner", brain.Dinner), brain.Dinner);
+                            if (brain.Dinner == original)
+                                return;
+                            break;
+                        }
+                        case ManualEntry.Plays:
+                        {
+                            (brain.Plays, var original) = (AnsiConsole.Ask("Plays", brain.Plays), brain.Plays);
+                            if (brain.Plays == original)
+                                return;
+                            break;
+                        }
+                        case ManualEntry.Fog:
+                        {
+                            (brain.Fog, var original) = (AnsiConsole.Ask("Fog", brain.Fog), brain.Fog);
+                            if (brain.Fog == original)
+                                return;
+                            break;
+                        }
+                        case (ManualEntry)(-1):
+                            return;
+                    }
+                    brain.LastActivity = DateTime.Now;
+                    Save(new(brain, history));
+                }
+                break;
         }
 }
 
@@ -440,6 +494,16 @@ public enum Action
     Activity,
     Status,
     History,
+    ManualEntry,
+}
+
+public enum ManualEntry
+{
+    Breakfast,
+    Lunch,
+    Dinner,
+    Plays,
+    Fog,
 }
 
 file class Ext
