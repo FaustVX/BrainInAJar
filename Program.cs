@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
@@ -132,16 +133,39 @@ while (true)
                     _ => "gold1",
                 };
             case Action.ManualEntry:
-                Edit(brain, history);
+                (brain, history) = GetOrCreateBrain();
+                Edit(brain);
+                Save(new(brain, history));
 
-                static void Edit(Brain brain, ImmutableArray<Death> history)
+                static void Edit(Brain brain)
                 {
                     switch (AnsiConsole.Prompt(new SelectionPrompt<ManualEntry>()
                         .Title("Select which field to edit")
-                        .AddChoices([ManualEntry.Breakfast, ManualEntry.Lunch, ManualEntry.Dinner, ManualEntry.Plays, ManualEntry.Fog])
+                        .AddChoices(Enum.GetValues<ManualEntry>())
                         .WrapAround()
                         .AddCancelResult((ManualEntry)(-1))))
                     {
+                        case ManualEntry.Name:
+                            brain.Name = AnsiConsole.Ask("Name", brain.Name);
+                            return;
+                        case ManualEntry.Days:
+                            brain.Days = AnsiConsole.Ask("Days", brain.Days);
+                            return;
+                        case ManualEntry.Mood:
+                            GetMood(brain) = AnsiConsole.Prompt(new SelectionPrompt<Mood>()
+                                .Title("Mood")
+                                .AddChoices(Enum.GetValues<Mood>())
+                                .WrapAround()
+                                .DefaultValue(brain.Mood));
+                            return;
+                            [UnsafeAccessor(UnsafeAccessorKind.Field, Name = $"<{nameof(brain.Mood)}>k__BackingField")]
+                            static extern ref Mood GetMood(Brain brain);
+                        case ManualEntry.LastActivity:
+                            brain.LastActivity = AnsiConsole.Ask("Last Activity", brain.LastActivity);
+                            return;
+                        case ManualEntry.LastMoodCheck:
+                            brain.LastMoodCheck = AnsiConsole.Ask("LastMoodCheck", brain.LastMoodCheck);
+                            return;
                         case ManualEntry.Breakfast:
                         {
                             (brain.Breakfast, var original) = (AnsiConsole.Confirm("Breakfast", brain.Breakfast), brain.Breakfast);
@@ -181,7 +205,6 @@ while (true)
                             return;
                     }
                     brain.LastActivity = DateTime.Now;
-                    Save(new(brain, history));
                 }
                 break;
         }
@@ -231,7 +254,7 @@ static void Save(Data data)
 
 public class Brain
 {
-    public required string Name { get; init; }
+    public required string Name { get; set; }
     public int Days { get; set; }
     public DateTime CreatedAt { get; init; } = DateTime.Now;
     public DateTime LastActivity { get; set; } = DateTime.Now.AddHours(-1);
@@ -466,8 +489,7 @@ public record class Death(string Name, DateTime CreatedAt, int Days);
 
 public enum Mood
 {
-    Dead = -1,
-    None,
+    Dead,
     Awakened,
     Troubled,
     Stable,
@@ -499,6 +521,11 @@ public enum Action
 
 public enum ManualEntry
 {
+    Name,
+    Days,
+    Mood,
+    LastActivity,
+    LastMoodCheck,
     Breakfast,
     Lunch,
     Dinner,
