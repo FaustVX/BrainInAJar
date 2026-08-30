@@ -264,7 +264,7 @@ public class Brain
 {
     public required string Name { get; set; }
     public int Days { get; set; }
-    public DateTime CreatedAt { get; init; } = DateTime.Now;
+    public DateOnly CreatedAt { get; init; } = DateOnly.FromDateTime(DateTime.Now);
     public DateTime LastActivity { get; set; } = DateTime.Now.AddHours(-1);
     public bool ActivityUnavailable => DateTime.Now.AddHours(-1) < LastActivity || this[CurrentMeal] && Fog <= 0 && (Mood is <= Mood.Awakened || Plays >= 2);
     public DateTime LastMoodCheck { get; set; } = DateTime.Now;
@@ -498,7 +498,7 @@ public class Brain
 
 public record class Data(Brain Brain, ImmutableArray<Death> Deaths);
 
-public record class Death(string Name, DateTime CreatedAt, int Days, Stats DiceStats);
+public record class Death(string Name, DateOnly CreatedAt, int Days, Stats DiceStats);
 
 public sealed class Stats
 {
