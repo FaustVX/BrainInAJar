@@ -31,7 +31,7 @@ while (true)
                 brain.MorningMoodCheck();
                 if (brain.Mood is Mood.Dead)
                 {
-                    history = [new(brain.Name, brain.CreatedAt, brain.Days, brain.DiceStats), ..history];
+                    history = [new(brain.Name, brain.CreatedAt, brain.Days, brain.DiceStats, brain.DaysStats), ..history];
                     brain = new() { Name = AnsiConsole.Ask<string>("Your brain is [red bold]dead[/]. What is your new brain's name ?") };
                 }
                 Save(new(brain, history));
@@ -56,6 +56,7 @@ while (true)
                 grid.AddRow(new Text("Fog"), new Markup($"[{FogColor(brain)}]{brain.Fog}/{brain.Days}[/]"));
                 grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}/1[/]"));
                 grid.AddRow("Dice Ratio", $"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P}%)");
+                grid.AddRow("Days Ratio", $"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P}%)");
                 var outer = new Grid();
                 outer.AddColumns(1);
                 outer.AddRow(new FigletText(brain.Name));
@@ -120,6 +121,7 @@ while (true)
                     grid.AddRow("CreatedAt", $"{d.CreatedAt:d} {d.CreatedAt:t}");
                     grid.AddRow("Days", $"[{DaysColor(d.Days)}]{d.Days}[/]");
                     grid.AddRow("Dice Ratio", $"{d.DiceStats.Wins}/{d.DiceStats.Total} ({d.DiceStats.Rate:P}%)");
+                    grid.AddRow("Days Ratio", $"{d.DaysStats.Wins}/{d.DaysStats.Total} ({d.DaysStats.Rate:P}%)");
                     return new Panel(grid).Border(BoxBorder.Beveled);
                 }));
                 AnsiConsole.Write(list);
@@ -208,6 +210,12 @@ while (true)
                             return;
                         case ManualEntry.LosesRoll:
                             brain.DiceStats.Loses = AnsiConsole.Ask("Lose rolls", brain.DiceStats.Loses);
+                            return;
+                        case ManualEntry.WinDays:
+                            brain.DaysStats.Wins = AnsiConsole.Ask("Win days", brain.DaysStats.Wins);
+                            return;
+                        case ManualEntry.LosesDays:
+                            brain.DaysStats.Loses = AnsiConsole.Ask("Lose days", brain.DaysStats.Loses);
                             return;
                         case (ManualEntry)(-1):
                             return;
@@ -321,9 +329,11 @@ public class Brain
     }
     public int Plays { get; set; }
     public int Fog { get; set; }
-    public int Love => FoodLevel == 3 && Plays == 2 && Fog == 0 ? 1 : 0;
+    public int Love => DayComplete ? 1 : 0;
+    public bool DayComplete => FoodLevel == 3 && Plays == 2 && Fog == 0;
     public int Care => FoodLevel + Plays + Love;
     public Stats DiceStats { get; init; } = new();
+    public Stats DaysStats { get; init; } = new();
 
     public void MorningMoodCheck()
     {
@@ -387,6 +397,10 @@ public class Brain
                 }
                 break;
         }
+        if (DayComplete)
+            DaysStats.Wins++;
+        else
+            DaysStats.Loses++;
         LastMoodCheck = DateTime.Now;
         Breakfast = Lunch = Dinner = false;
         Plays = 0;
@@ -510,7 +524,7 @@ public class Brain
 
 public record class Data(Brain Brain, ImmutableArray<Death> Deaths);
 
-public record class Death(string Name, DateOnly CreatedAt, int Days, Stats DiceStats);
+public record class Death(string Name, DateOnly CreatedAt, int Days, Stats DiceStats, Stats DaysStats);
 
 public sealed class Stats
 {
@@ -566,6 +580,8 @@ public enum ManualEntry
     Fog,
     WinRoll,
     LosesRoll,
+    WinDays,
+    LosesDays,
 }
 
 file class Ext
