@@ -480,6 +480,8 @@ public class Brain
         if (die4 is (0, 0))
             goto ReselectDice;
         var success = die3.Item2 + die4.Item2 == reach;
+        if (!success && AnsiConsole.Confirm("Reselect dice ?"))
+            goto ReselectDice;
         if (success)
             DiceStats.Wins++;
         else
