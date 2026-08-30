@@ -408,6 +408,7 @@ public class Brain
                 AnsiConsole.MarkupLine("[red]You have nothing to do today, come back later[/]");
             return;
         }
+        ReselectActivity:
         var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>()
             .Title("Select the activity")
             .WrapAround()
@@ -438,7 +439,7 @@ public class Brain
             .WrapAround()
             .UseConverter(t => t.Item2.ToString()));
         if (die1 is (0, 0))
-            goto ReselectDice;
+            goto ReselectActivity;
         var die2 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
             .Title($"Select [blue]2nd[/] die ([green]{die1.Item2}[/])")
             .AddChoices(dice.Index().Except([die1]))
