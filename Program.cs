@@ -341,8 +341,9 @@ public class Brain
             return;
         }
 
-        var roll1 = Random.Shared.Next(1, 7);
-        var roll2 = Random.Shared.Next(1, 7);
+        var random = GetRandom(RamdomContext.MoodCheck);
+        var roll1 = random.Next(1, 7);
+        var roll2 = random.Next(1, 7);
         switch (roll1, roll2)
         {
             case (6, 6) when Mood is Mood.Awakened:
@@ -427,7 +428,7 @@ public class Brain
         };
         AfterClean:
         AnsiConsole.MarkupLine($"You will play the dice game with [underline italic blue]{Name}[/] to [green]{(activity is Activity.Eat ? $"Eat {CurrentMeal}" : activity)}[/] with [green]{numDice}[/] dice because you are [underline italic blue]{Mood}[/]");
-        var dice = Random.Shared.GetItems([1, 2, 3, 4, 5, 6], numDice);
+        var dice = GetRandom((RamdomContext)(int)activity).GetItems([1, 2, 3, 4, 5, 6], numDice);
         AnsiConsole.MarkupLine("your dice: [green]" + Ext.Join("[/], [green]", "[/] and [green]", dice) + "[/]");
         ReselectDice:
         var die1 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
@@ -493,6 +494,16 @@ public class Brain
         else
             AnsiConsole.MarkupLine($"You [red bold]failed[/] with 2 differents pairs: [green]{die1.Item2}[/] + [green]{die2.Item2}[/] != [green]{die3.Item2}[/] + [green]{die4.Item2}[/]");
         LastActivity = DateTime.Now;
+    }
+
+    private Random GetRandom(RamdomContext context)
+    => new((CreatedAt.DayNumber * 73856093) ^ (Days * 19349663) ^ (DiceStats.Total * 83492809) ^ ((int)context * 12345701));
+    private enum RamdomContext
+    {
+        Eat,
+        Clean,
+        Play,
+        MoodCheck,
     }
 }
 
