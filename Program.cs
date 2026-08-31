@@ -15,7 +15,7 @@ while (true)
             .AddChoices([
                 ..brain.MoodCheckUnavailable ? Array.Empty<Action>() : [Action.MoodCheck],
                 ..brain.ActivityUnavailable ? Array.Empty<Action>() : [Action.Activity],
-                Action.Status, Action.History, Action.ManualEntry])
+                Action.Status, Action.History, Action.ManualEntry, Action.Quit])
                 .UseConverter(a => a switch
                 {
                     Action.MoodCheck => "Morning mood check",
@@ -23,6 +23,7 @@ while (true)
                     Action.Status => "Show status",
                     Action.History => $"Show history ({history.Length} deaths, so far ...)",
                     Action.ManualEntry => "Manual entry",
+                    Action.Quit => "Quit",
                     _ => throw new UnreachableException(),
                 })
                 .DefaultValue(Action.Status)))
@@ -226,6 +227,9 @@ while (true)
                     brain.LastActivity = DateTime.Now;
                 }
                 break;
+            case Action.Quit:
+                Save(new(brain, history));
+                return;
         }
 }
 
@@ -561,6 +565,7 @@ public enum Action
     Status,
     History,
     ManualEntry,
+    Quit,
 }
 
 public enum ManualEntry
