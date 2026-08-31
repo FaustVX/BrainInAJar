@@ -50,11 +50,13 @@ while (true)
                 var lastActivity = DateTime.Now - brain.LastActivity;
                 grid.AddRow(new Text("Last Activity"), new Markup($"[{(lastActivity.TotalHours >= 1 ? "green" : "red")}]{lastActivity}[/]"));
                 grid.AddRow(new Text("Last Mood Check"), new Markup($"[{LastMoodColor(brain)}]{DateTime.Now - brain.LastMoodCheck}[/]"));
+                grid.AddRow(new Rule(), new Rule());
                 grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
                 grid.AddRow(new Text("Food"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]\n[{MealColor(brain.Breakfast)}]Breakfast[/]-[{MealColor(brain.Lunch)}]Lunch[/]-[{MealColor(brain.Dinner)}]Dinner[/]"));
                 grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}/2[/]"));
                 grid.AddRow(new Text("Fog"), new Markup($"[{FogColor(brain)}]{brain.Fog}/{brain.Days}[/]"));
                 grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}/1[/]"));
+                grid.AddRow(new Rule(), new Rule());
                 grid.AddRow("Dice Ratio", $"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P}%)");
                 grid.AddRow("Days Ratio", $"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P}%)");
                 var outer = new Grid();
@@ -120,6 +122,7 @@ while (true)
                     grid.AddRow("Name", d.Name);
                     grid.AddRow("CreatedAt", $"{d.CreatedAt:d} {d.CreatedAt:t}");
                     grid.AddRow("Days", $"[{DaysColor(d.Days)}]{d.Days}[/]");
+                    grid.AddRow(new Rule(), new Rule());
                     grid.AddRow("Dice Ratio", $"{d.DiceStats.Wins}/{d.DiceStats.Total} ({d.DiceStats.Rate:P}%)");
                     grid.AddRow("Days Ratio", $"{d.DaysStats.Wins}/{d.DaysStats.Total} ({d.DaysStats.Rate:P}%)");
                     return new Panel(grid).Border(BoxBorder.Beveled);
