@@ -142,10 +142,10 @@ while (true)
                 };
             case Action.ManualEntry:
                 (brain, history) = GetOrCreateBrain();
-                Edit(brain);
-                Save(new(brain, history));
+                while (Edit(brain))
+                    Save(new(brain, history));
 
-                static void Edit(Brain brain)
+                static bool Edit(Brain brain)
                 {
                     switch (AnsiConsole.Prompt(new SelectionPrompt<ManualEntry>()
                         .Title("Select which field to edit")
@@ -155,76 +155,77 @@ while (true)
                     {
                         case ManualEntry.Name:
                             brain.Name = AnsiConsole.Ask("Name", brain.Name);
-                            return;
+                            return true;
                         case ManualEntry.Days:
                             brain.Days = AnsiConsole.Ask("Days", brain.Days);
-                            return;
+                            return true;
                         case ManualEntry.Mood:
                             GetMood(brain) = AnsiConsole.Prompt(new SelectionPrompt<Mood>()
                                 .Title("Mood")
                                 .AddChoices(Enum.GetValues<Mood>())
                                 .WrapAround()
                                 .DefaultValue(brain.Mood));
-                            return;
+                            return true;
                             [UnsafeAccessor(UnsafeAccessorKind.Field, Name = $"<{nameof(brain.Mood)}>k__BackingField")]
                             static extern ref Mood GetMood(Brain brain);
                         case ManualEntry.LastActivity:
                             brain.LastActivity = AnsiConsole.Ask("Last Activity", brain.LastActivity);
-                            return;
+                            return true;
                         case ManualEntry.LastMoodCheck:
                             brain.LastMoodCheck = AnsiConsole.Ask("LastMoodCheck", brain.LastMoodCheck);
-                            return;
+                            return true;
                         case ManualEntry.Breakfast:
                         {
                             (brain.Breakfast, var original) = (AnsiConsole.Confirm("Breakfast", brain.Breakfast), brain.Breakfast);
                             if (brain.Breakfast == original)
-                                return;
+                                return true;
                             break;
                         }
                         case ManualEntry.Lunch:
                         {
                             (brain.Lunch, var original) = (AnsiConsole.Confirm("Lunch", brain.Lunch), brain.Lunch);
                             if (brain.Lunch == original)
-                                return;
+                                return true;
                             break;
                         }
                         case ManualEntry.Dinner:
                         {
                             (brain.Dinner, var original) = (AnsiConsole.Confirm("Dinner", brain.Dinner), brain.Dinner);
                             if (brain.Dinner == original)
-                                return;
+                                return true;
                             break;
                         }
                         case ManualEntry.Plays:
                         {
                             (brain.Plays, var original) = (AnsiConsole.Ask("Plays", brain.Plays), brain.Plays);
                             if (brain.Plays == original)
-                                return;
+                                return true;
                             break;
                         }
                         case ManualEntry.Fog:
                         {
                             (brain.Fog, var original) = (AnsiConsole.Ask("Fog", brain.Fog), brain.Fog);
                             if (brain.Fog == original)
-                                return;
+                                return true;
                             break;
                         }
                         case ManualEntry.WinRoll:
                             brain.DiceStats.Wins = AnsiConsole.Ask("Win rolls", brain.DiceStats.Wins);
-                            return;
+                            return true;
                         case ManualEntry.LosesRoll:
                             brain.DiceStats.Loses = AnsiConsole.Ask("Lose rolls", brain.DiceStats.Loses);
-                            return;
+                            return true;
                         case ManualEntry.WinDays:
                             brain.DaysStats.Wins = AnsiConsole.Ask("Win days", brain.DaysStats.Wins);
-                            return;
+                            return true;
                         case ManualEntry.LosesDays:
                             brain.DaysStats.Loses = AnsiConsole.Ask("Lose days", brain.DaysStats.Loses);
-                            return;
+                            return true;
                         case (ManualEntry)(-1):
-                            return;
+                            return false;
                     }
                     brain.LastActivity = DateTime.Now;
+                    return true;
                 }
                 break;
             case Action.Quit:
