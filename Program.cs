@@ -8,6 +8,7 @@ using Spectre.Console;
 while (true)
 {
     var (brain, history) = GetOrCreateBrain();
+    ShowStatus();
     while (brain.Mood is not Mood.Dead)
         switch (AnsiConsole.Prompt(new SelectionPrompt<Action>()
             .Title("Do what ?")
@@ -35,86 +36,18 @@ while (true)
                     history = [new(brain.Name, brain.CreatedAt, brain.Days, brain.DiceStats, brain.DaysStats), ..history];
                     brain = new() { Name = AnsiConsole.Ask<string>("Your brain is [red bold]dead[/]. What is your new brain's name ?") };
                 }
+                ShowStatus();
                 Save(new(brain, history));
                 break;
             case Action.Activity:
                 brain.DoActivity();
+                ShowStatus();
                 Save(new(brain, history));
                 break;
             case Action.Status:
                 (brain, history) = GetOrCreateBrain();
-                var grid = new Grid();
-                grid.AddColumns(2);
-                grid.AddRow("Created At", brain.CreatedAt.ToString());
-                grid.AddRow("Days", brain.Days.ToString());
-                grid.AddRow("Current Date Time", DateTime.Now.ToString());
-                var lastActivity = DateTime.Now - brain.LastActivity;
-                grid.AddRow(new Text("Last Activity"), new Markup($"[{(lastActivity.TotalHours >= 1 ? "green" : "red")}]{lastActivity}[/]"));
-                grid.AddRow(new Text("Last Mood Check"), new Markup($"[{LastMoodColor(brain)}]{DateTime.Now - brain.LastMoodCheck}[/]"));
-                grid.AddRow(new Rule(), new Rule());
-                grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
-                grid.AddRow(new Text("Food"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]\n[{MealColor(brain.Breakfast)}]Breakfast[/]-[{MealColor(brain.Lunch)}]Lunch[/]-[{MealColor(brain.Dinner)}]Dinner[/]"));
-                grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}/2[/]"));
-                grid.AddRow(new Text("Fog"), new Markup($"[{FogColor(brain)}]{brain.Fog}/{brain.Days}[/]"));
-                grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}/1[/]"));
-                grid.AddRow(new Rule(), new Rule());
-                grid.AddRow("Dice Ratio", $"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P}%)");
-                grid.AddRow("Days Ratio", $"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P}%)");
-                var outer = new Grid();
-                outer.AddColumns(1);
-                outer.AddRow(new FigletText(brain.Name));
-                outer.AddRow(grid);
-                AnsiConsole.Write(new Panel(outer).Border(BoxBorder.Beveled));
+                ShowStatus();
                 break;
-
-                static string ToMoodColor(Brain brain)
-                => brain.Mood switch
-                {
-                    Mood.Dead => "bold red",
-                    Mood.Awakened => "red",
-                    Mood.Troubled => "orange",
-                    Mood.Stable => "blue",
-                    Mood.Content => "green",
-                    _ => throw new UnreachableException(),
-                };
-
-                static string LastMoodColor(Brain brain)
-                => TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(brain.LastMoodCheck) ? "on" : "green";
-
-                static string FoodLevelColor(Brain brain)
-                => brain.FoodLevel switch
-                {
-                    0 => "red",
-                    1 => "darkOrange",
-                    2 => "blue",
-                    3 => "green",
-                    _ => throw new UnreachableException(),
-                };
-
-                static string MealColor(bool meal)
-                => meal ? "green" : "on";
-
-                static string PlaysColor(Brain brain)
-                => brain.Plays switch
-                {
-                    0 => "red",
-                    2 => "green",
-                    _ => "blue",
-                };
-
-                static string FogColor(Brain brain)
-                => brain.Fog switch
-                {
-                    0 => "green",
-                    _ => "blue",
-                };
-
-                static string LoveColor(Brain brain)
-                => brain.Love switch
-                {
-                    0 => "red",
-                    _ => "green",
-                };
             case Action.History:
                 var list = new Columns(history.Select(static d =>
                 {
@@ -232,6 +165,81 @@ while (true)
                 Save(new(brain, history));
                 return;
         }
+
+    void ShowStatus()
+    {
+        var grid = new Grid();
+        grid.AddColumns(2);
+        grid.AddRow("Created At", brain.CreatedAt.ToString());
+        grid.AddRow("Days", brain.Days.ToString());
+        grid.AddRow("Current Date Time", DateTime.Now.ToString());
+        var lastActivity = DateTime.Now - brain.LastActivity;
+        grid.AddRow(new Text("Last Activity"), new Markup($"[{(lastActivity.TotalHours >= 1 ? "green" : "red")}]{lastActivity}[/]"));
+        grid.AddRow(new Text("Last Mood Check"), new Markup($"[{LastMoodColor(brain)}]{DateTime.Now - brain.LastMoodCheck}[/]"));
+        grid.AddRow(new Rule(), new Rule());
+        grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
+        grid.AddRow(new Text("Food"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]\n[{MealColor(brain.Breakfast)}]Breakfast[/]-[{MealColor(brain.Lunch)}]Lunch[/]-[{MealColor(brain.Dinner)}]Dinner[/]"));
+        grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}/2[/]"));
+        grid.AddRow(new Text("Fog"), new Markup($"[{FogColor(brain)}]{brain.Fog}/{brain.Days}[/]"));
+        grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}/1[/]"));
+        grid.AddRow(new Rule(), new Rule());
+        grid.AddRow("Dice Ratio", $"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P}%)");
+        grid.AddRow("Days Ratio", $"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P}%)");
+        var outer = new Grid();
+        outer.AddColumns(1);
+        outer.AddRow(new FigletText(brain.Name));
+        outer.AddRow(grid);
+        AnsiConsole.Write(new Panel(outer).Border(BoxBorder.Beveled));
+
+        static string ToMoodColor(Brain brain)
+        => brain.Mood switch
+        {
+            Mood.Dead => "bold red",
+            Mood.Awakened => "red",
+            Mood.Troubled => "orange",
+            Mood.Stable => "blue",
+            Mood.Content => "green",
+            _ => throw new UnreachableException(),
+        };
+
+        static string LastMoodColor(Brain brain)
+        => TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(brain.LastMoodCheck) ? "on" : "green";
+
+        static string FoodLevelColor(Brain brain)
+        => brain.FoodLevel switch
+        {
+            0 => "red",
+            1 => "darkOrange",
+            2 => "blue",
+            3 => "green",
+            _ => throw new UnreachableException(),
+        };
+
+        static string MealColor(bool meal)
+        => meal ? "green" : "on";
+
+        static string PlaysColor(Brain brain)
+        => brain.Plays switch
+        {
+            0 => "red",
+            2 => "green",
+            _ => "blue",
+        };
+
+        static string FogColor(Brain brain)
+        => brain.Fog switch
+        {
+            0 => "green",
+            _ => "blue",
+        };
+
+        static string LoveColor(Brain brain)
+        => brain.Love switch
+        {
+            0 => "red",
+            _ => "green",
+        };
+    }
 }
 
 static Data GetOrCreateBrain()
