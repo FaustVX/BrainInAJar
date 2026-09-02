@@ -4,11 +4,12 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
+using Spectre.Console.Rendering;
 
 while (true)
 {
     var (brain, history) = GetOrCreateBrain();
-    ShowStatus();
+    AnsiConsole.Write(ShowStatus(brain));
     while (brain.Mood is not Mood.Dead)
         switch (AnsiConsole.Prompt(new SelectionPrompt<Action>()
             .Title("Do what ?")
@@ -33,46 +34,25 @@ while (true)
                 brain.MorningMoodCheck();
                 if (brain.Mood is Mood.Dead)
                 {
-                    history = [new(brain.Name, brain.CreatedAt, brain.Days, brain.DiceStats, brain.DaysStats), ..history];
+                    history = [brain, ..history];
                     brain = new() { Name = AnsiConsole.Ask<string>("Your brain is [red bold]dead[/]. What is your new brain's name ?") };
                 }
-                ShowStatus();
+                AnsiConsole.Write(ShowStatus(brain));
                 Save(new(brain, history));
                 break;
             case Action.Activity:
                 brain.DoActivity();
-                ShowStatus();
+                AnsiConsole.Write(ShowStatus(brain));
                 Save(new(brain, history));
                 break;
             case Action.Status:
                 (brain, history) = GetOrCreateBrain();
-                ShowStatus();
+                AnsiConsole.Write(ShowStatus(brain));
                 break;
             case Action.History:
-                var list = new Columns(history.Select(static d =>
-                {
-                    var grid = new Grid();
-                    grid.AddColumns(2);
-                    grid.AddRow("Name", d.Name);
-                    grid.AddRow("CreatedAt", $"{d.CreatedAt:d} {d.CreatedAt:t}");
-                    grid.AddRow("Days", $"[{DaysColor(d.Days)}]{d.Days}[/]");
-                    grid.AddRow(new Rule(), new Rule());
-                    grid.AddRow("Dice Ratio", $"{d.DiceStats.Wins}/{d.DiceStats.Total} ({d.DiceStats.Rate:P}%)");
-                    grid.AddRow("Days Ratio", $"{d.DaysStats.Wins}/{d.DaysStats.Total} ({d.DaysStats.Rate:P}%)");
-                    return new Panel(grid).Border(BoxBorder.Beveled);
-                }));
+                var list = new Columns(history.Select(ShowStatus));
                 AnsiConsole.Write(list);
                 break;
-
-                static string DaysColor(int days)
-                => days switch
-                {
-                    < 6 => "red",
-                    <= 10 => "darkOrange",
-                    <= 20 => "blue",
-                    <= 30 => "green",
-                    _ => "gold1",
-                };
             case Action.ManualEntry:
                 (brain, history) = GetOrCreateBrain();
                 while (Edit(brain))
@@ -166,7 +146,7 @@ while (true)
                 return;
         }
 
-    void ShowStatus()
+    static IRenderable ShowStatus(Brain brain)
     {
         var grid = new Grid();
         grid.AddColumns(2);
@@ -189,7 +169,7 @@ while (true)
         outer.AddColumns(1);
         outer.AddRow(new FigletText(brain.Name));
         outer.AddRow(grid);
-        AnsiConsole.Write(new Panel(outer).Border(BoxBorder.Beveled));
+        return new Panel(outer).Border(BoxBorder.Beveled);
 
         static string ToMoodColor(Brain brain)
         => brain.Mood switch
@@ -532,9 +512,7 @@ public class Brain
     => new((CreatedAt.DayNumber * 73856093) ^ (Days * 19349663) ^ (DiceStats.Total * 83492809) ^ ((int)context * 12345701) + (int)LastActivity.Ticks);
 }
 
-public record class Data(Brain Brain, ImmutableArray<Death> Deaths);
-
-public record class Death(string Name, DateOnly CreatedAt, int Days, Stats DiceStats, Stats DaysStats);
+public record class Data(Brain Brain, ImmutableArray<Brain> Deaths);
 
 public sealed class Stats
 {
