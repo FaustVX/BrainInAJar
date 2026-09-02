@@ -196,7 +196,7 @@ while (true)
         {
             Mood.Dead => "bold red",
             Mood.Awakened => "red",
-            Mood.Troubled => "orange",
+            Mood.Troubled => "darkOrange",
             Mood.Stable => "blue",
             Mood.Content => "green",
             _ => throw new UnreachableException(),
