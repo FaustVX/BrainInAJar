@@ -476,8 +476,38 @@ public class Brain
         if (die4 is (0, 0))
             goto ReselectDice;
         var success = die3.Item2 + die4.Item2 == reach;
-        if (!success && AnsiConsole.Confirm("Reselect dice ?"))
-            goto ReselectDice;
+        if (!success)
+            switch (AnsiConsole.Prompt(new SelectionPrompt<bool>()
+                .Title("What to do ?")
+                .AddChoices([false, true])
+                .WrapAround()
+                .UseConverter(i => i switch
+                {
+                    false => "Reselect dice",
+                    true => "Auto-select pairs",
+                })))
+            {
+                case false:
+                    goto ReselectDice;
+                case true:
+                    SelectPair();
+                    break;
+                void SelectPair()
+                {
+                    for (var a = 0; a < dice.Length; a++)
+                        for (var b = 0; b < dice.Length; b++)
+                            for (var c = 0; c < dice.Length; c++)
+                                for (var d = 0; d < dice.Length; d++)
+                                    if (b == a || (c == a || c == b) || (d == a || d == b || d == c))
+                                        continue;
+                                    else if (dice[a] + dice[b] == dice[c] + dice[d])
+                                    {
+                                        (die1, die2, die3, die4, success) = ((a, dice[a]), (b, dice[b]), (c, dice[c]), (d, dice[d]), true);
+                                        return;
+                                    }
+                    success = false;
+                }
+            }
         if (success)
             DiceStats.Wins++;
         else
