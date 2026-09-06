@@ -151,7 +151,7 @@ while (true)
         var grid = new Grid();
         grid.AddColumns(2);
         grid.AddRow("Created At", brain.CreatedAt.ToString());
-        grid.AddRow("Days", brain.Days.ToString());
+        grid.AddRow("Days", $"[{DaysColor(brain.Days)}]{brain.Days}[/]");
         if (brain.Mood is not Mood.Dead)
         {
             grid.AddRow("Current Date Time", DateTime.Now.ToString());
@@ -178,6 +178,16 @@ while (true)
         outer.AddRow(new FigletText(brain.Name));
         outer.AddRow(grid);
         return new Panel(outer).Border(BoxBorder.Beveled);
+
+        static string DaysColor(int days)
+        => days switch
+        {
+            < 6 => "red",
+            <= 10 => "darkOrange",
+            <= 20 => "blue",
+            <= 30 => "green",
+            _ => "gold1",
+        };
 
         static string ToMoodColor(Brain brain)
         => brain.Mood switch
