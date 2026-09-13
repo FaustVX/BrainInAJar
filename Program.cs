@@ -161,7 +161,7 @@ while (true)
             grid.AddRow(new Rule(), new Rule());
             grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
             if (brain.DayComplete)
-                grid.AddRow("Day complete", "[green]true[/]");
+                grid.AddRow("Day complete", "[green]True[/]");
             else
             {
                 grid.AddRow(new Text("Food"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]\n[{MealStyle(brain, Meal.Breakfast)}]Breakfast[/]-[{MealStyle(brain, Meal.Lunch)}]Lunch[/]-[{MealStyle(brain, Meal.Dinner)}]Dinner[/]"));
