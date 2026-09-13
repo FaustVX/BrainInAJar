@@ -164,7 +164,7 @@ while (true)
                 grid.AddRow("Day complete", "[green]true[/]");
             else
             {
-                grid.AddRow(new Text("Food"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]\n[{MealColor(brain.Breakfast)}]Breakfast[/]-[{MealColor(brain.Lunch)}]Lunch[/]-[{MealColor(brain.Dinner)}]Dinner[/]"));
+                grid.AddRow(new Text("Food"), new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]\n[{MealStyle(brain, Meal.Breakfast)}]Breakfast[/]-[{MealStyle(brain, Meal.Lunch)}]Lunch[/]-[{MealStyle(brain, Meal.Dinner)}]Dinner[/]"));
                 grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}/2[/]"));
                 grid.AddRow(new Text("Fog"), new Markup($"[{FogColor(brain)}]{brain.Fog}/{brain.Days}[/]"));
                 grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}/1[/]"));
@@ -213,8 +213,9 @@ while (true)
             _ => throw new UnreachableException(),
         };
 
-        static string MealColor(bool meal)
-        => meal ? "green" : "on";
+        static string MealStyle(Brain brain, Meal meal)
+        => brain[meal] ? "green" :
+            Brain.CurrentMeal > meal ? "strikethrough": "on";
 
         static string PlaysColor(Brain brain)
         => brain.Plays switch
