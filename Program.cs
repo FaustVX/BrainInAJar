@@ -215,7 +215,8 @@ while (true)
 
         static string MealStyle(Brain brain, Meal meal)
         => brain[meal] ? "green" :
-            Brain.CurrentMeal > meal ? "strikethrough": "on";
+            Brain.CurrentMeal > meal ? "strikethrough" :
+            Brain.CurrentMeal == meal ? "underline" : "default";
 
         static string PlaysColor(Brain brain)
         => brain.Plays switch
