@@ -8,6 +8,12 @@ using BrainInAJar;
 
 var saveFile = new FileInfo(args is [var path] ? path : "save/BrainInAJar.json");
 
+Console.CancelKeyPress += (_, e) =>
+{
+    Console.ResetColor();
+    Console.CursorVisible = true;
+};
+
 while (true)
 {
     var (brain, history) = GetOrCreateBrain(saveFile);
