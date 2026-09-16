@@ -131,10 +131,7 @@ class Brain
                 }
                 break;
         }
-        if (DayComplete)
-            DaysStats.Wins++;
-        else
-            DaysStats.Loses++;
+        DaysStats.Update(DayComplete);
         LastMoodCheck = DateTime.Now;
         Breakfast = Lunch = Dinner = false;
         Plays = 0;
@@ -247,10 +244,7 @@ class Brain
                     success = false;
                 }
             }
-        if (success)
-            DiceStats.Wins++;
-        else
-            DiceStats.Loses++;
+        DiceStats.Update(success);
         if (success)
         {
             AnsiConsole.MarkupLine($"You [green bold]succeded[/] with 2 equals pairs: [green]{die1.Item2}[/] + [green]{die2.Item2}[/] = [blue]{reach}[/] = [green]{die3.Item2}[/] + [green]{die4.Item2}[/]");

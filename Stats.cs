@@ -8,6 +8,14 @@ sealed class Stats
     public int Loses { get; set; }
     public int Total => Wins + Loses;
     public double Rate => (double)Wins / Total;
+
+    public void Update(bool success)
+    {
+        if (success)
+            Wins++;
+        else
+            Loses++;
+    }
 }
 
 record class Data(Brain Brain, ImmutableArray<Brain> Deaths);
