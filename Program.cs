@@ -6,9 +6,11 @@ using Spectre.Console;
 using Spectre.Console.Rendering;
 using BrainInAJar;
 
+var saveFile = new FileInfo(args is [var path] ? path : "save/BrainInAJar.json");
+
 while (true)
 {
-    var (brain, history) = GetOrCreateBrain();
+    var (brain, history) = GetOrCreateBrain(saveFile);
     AnsiConsole.Write(ShowStatus(brain));
     while (brain.Mood is not Mood.Dead)
         switch (AnsiConsole.Prompt(new SelectionPrompt<Selection>()
@@ -38,15 +40,15 @@ while (true)
                     brain = new() { Name = AnsiConsole.Ask<string>("Your brain is [red bold]dead[/]. What is your new brain's name ?") };
                 }
                 AnsiConsole.Write(ShowStatus(brain));
-                Save(new(brain, history));
+                Save(new(brain, history), saveFile);
                 break;
             case Selection.Activity:
                 brain.DoActivity();
                 AnsiConsole.Write(ShowStatus(brain));
-                Save(new(brain, history));
+                Save(new(brain, history), saveFile);
                 break;
             case Selection.Status:
-                (brain, history) = GetOrCreateBrain();
+                (brain, history) = GetOrCreateBrain(saveFile);
                 AnsiConsole.Write(ShowStatus(brain));
                 break;
             case Selection.History:
@@ -54,9 +56,9 @@ while (true)
                 AnsiConsole.Write(list);
                 break;
             case Selection.ManualEntry:
-                (brain, history) = GetOrCreateBrain();
+                (brain, history) = GetOrCreateBrain(saveFile);
                 while (Edit(brain))
-                    Save(new(brain, history));
+                    Save(new(brain, history), saveFile);
 
                 static bool Edit(Brain brain)
                 {
@@ -142,7 +144,7 @@ while (true)
                 }
                 break;
             case Selection.Quit:
-                Save(new(brain, history));
+                Save(new(brain, history), saveFile);
                 return;
         }
 
@@ -242,12 +244,12 @@ while (true)
     }
 }
 
-static Data GetOrCreateBrain()
+static Data GetOrCreateBrain(FileInfo saveFile)
 {
     try
     {
-        Directory.CreateDirectory("save");
-        using var stream = File.Open("save/BrainInAJar.json", FileMode.Open, FileAccess.Read, FileShare.Read);
+        Directory.CreateDirectory(saveFile.Directory!.FullName);
+        using var stream = saveFile.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
         return JsonSerializer.Deserialize<Data>(stream, new JsonSerializerOptions(JsonSerializerDefaults.General)
         {
             AllowTrailingCommas = true,
@@ -263,15 +265,15 @@ static Data GetOrCreateBrain()
     {
         var brain = new Brain() { Name = AnsiConsole.Ask<string>("Brain's name ?") };
         var data = new Data(brain, []);
-        Save(data);
+        Save(data, saveFile);
         return data;
     }
 }
 
-static void Save(Data data)
+static void Save(Data data, FileInfo saveFile)
 {
-    Directory.CreateDirectory("save");
-    using var stream = File.Open("save/BrainInAJar.json", FileMode.Create, FileAccess.Write, FileShare.Read);
+    Directory.CreateDirectory(saveFile.Directory!.FullName);
+    using var stream = saveFile.Open(FileMode.Create, FileAccess.Write, FileShare.Read);
     JsonSerializer.Serialize(stream, data, new JsonSerializerOptions(JsonSerializerDefaults.General)
     {
         AllowTrailingCommas = true,
