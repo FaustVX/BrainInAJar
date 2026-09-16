@@ -6,7 +6,7 @@ using Spectre.Console;
 using Spectre.Console.Rendering;
 using BrainInAJar;
 
-var saveFile = new FileInfo(args is [var path] ? path : "save/BrainInAJar.json");
+var arguments = Arguments.Parse(args);
 
 Console.CancelKeyPress += (_, e) =>
 {
@@ -16,7 +16,7 @@ Console.CancelKeyPress += (_, e) =>
 
 while (true)
 {
-    var (brain, history) = GetOrCreateBrain(saveFile);
+    var (brain, history) = GetOrCreateBrain(arguments.SaveFile);
     AnsiConsole.Write(ShowStatus(brain));
     while (brain.Mood is not Mood.Dead)
         switch (AnsiConsole.Prompt(new SelectionPrompt<Selection>()
@@ -25,7 +25,9 @@ while (true)
             .AddChoices([
                 ..brain.MoodCheckUnavailable ? Array.Empty<Selection>() : [Selection.MoodCheck],
                 ..brain.ActivityUnavailable ? Array.Empty<Selection>() : [Selection.Activity],
-                Selection.Status, Selection.History, Selection.ManualEntry, Selection.Quit])
+                Selection.Status, Selection.History,
+                ..(!arguments.AllowManualEdit) ? Array.Empty<Selection>() : [Selection.ManualEntry],
+                Selection.Quit])
                 .UseConverter(a => a switch
                 {
                     Selection.MoodCheck => "Morning mood check",
@@ -46,15 +48,15 @@ while (true)
                     brain = new() { Name = AnsiConsole.Ask<string>("Your brain is [red bold]dead[/]. What is your new brain's name ?") };
                 }
                 AnsiConsole.Write(ShowStatus(brain));
-                Save(new(brain, history), saveFile);
+                Save(new(brain, history), arguments.SaveFile);
                 break;
             case Selection.Activity:
                 brain.DoActivity();
                 AnsiConsole.Write(ShowStatus(brain));
-                Save(new(brain, history), saveFile);
+                Save(new(brain, history), arguments.SaveFile);
                 break;
             case Selection.Status:
-                (brain, history) = GetOrCreateBrain(saveFile);
+                (brain, history) = GetOrCreateBrain(arguments.SaveFile);
                 AnsiConsole.Write(ShowStatus(brain));
                 break;
             case Selection.History:
@@ -62,9 +64,9 @@ while (true)
                 AnsiConsole.Write(list);
                 break;
             case Selection.ManualEntry:
-                (brain, history) = GetOrCreateBrain(saveFile);
+                (brain, history) = GetOrCreateBrain(arguments.SaveFile);
                 while (Edit(brain))
-                    Save(new(brain, history), saveFile);
+                    Save(new(brain, history), arguments.SaveFile);
 
                 static bool Edit(Brain brain)
                 {
@@ -150,7 +152,7 @@ while (true)
                 }
                 break;
             case Selection.Quit:
-                Save(new(brain, history), saveFile);
+                Save(new(brain, history), arguments.SaveFile);
                 return;
         }
 
