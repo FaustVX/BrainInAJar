@@ -120,6 +120,7 @@ class Brain
                     case <= 5 when Mood is Mood.Awakened:
                         AnsiConsole.MarkupLineInterpolated($"You mood goes down by [red]1[/] but you are already [red]{Mood}[/], you [red bold]die[/]");
                         Mood = Mood.Dead;
+                        DaysStats.Update(DayComplete);
                         return;
                     case <= 5:
                         Mood -= 1;
