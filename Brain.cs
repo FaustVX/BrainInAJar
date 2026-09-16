@@ -235,7 +235,11 @@ class Brain
                         for (var b = 0; b < dice.Length; b++)
                             for (var c = 0; c < dice.Length; c++)
                                 for (var d = 0; d < dice.Length; d++)
-                                    if (b == a || (c == a || c == b) || (d == a || d == b || d == c))
+                                    if (b == a) // Continue if die 2 equals to a previous die
+                                        continue;
+                                    else if (c == a || c == b) // Continue if die 3 equals to a previous die
+                                        continue;
+                                    else if (d == a || d == b || d == c) // Continue if die 4 equals to a previous die
                                         continue;
                                     else if (dice[a] + dice[b] == dice[c] + dice[d])
                                     {
