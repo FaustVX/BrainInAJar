@@ -37,8 +37,7 @@ while (true)
                     Selection.ManualEntry => "Manual entry",
                     Selection.Quit => "Quit",
                     _ => throw new UnreachableException(),
-                })
-                .DefaultValue(Selection.Status)))
+                })))
         {
             case Selection.MoodCheck:
                 brain.MorningMoodCheck();
