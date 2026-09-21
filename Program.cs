@@ -50,9 +50,10 @@ while (true)
                 Save(new(brain, history), arguments.SaveFile);
                 break;
             case Selection.Activity:
-                brain.DoActivity();
-                AnsiConsole.Write(ShowStatus(brain));
+                foreach (var _ in brain.DoActivity())
+                    Save(new(brain, history), arguments.SaveFile);
                 Save(new(brain, history), arguments.SaveFile);
+                AnsiConsole.Write(ShowStatus(brain));
                 break;
             case Selection.Status:
                 (brain, history) = GetOrCreateBrain(arguments.SaveFile);

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 using Spectre.Console;
 
@@ -139,7 +140,7 @@ class Brain
         Fog = Days += 1;
     }
 
-    public void DoActivity()
+    public IEnumerable DoActivity()
     {
         var errors = (wait1hour: false, nothingToDo: false);
         if (DateTime.Now.AddHours(-1) < LastActivity)
@@ -152,7 +153,7 @@ class Brain
                 AnsiConsole.MarkupLineInterpolated($"[red]You should wait at least [italic blue]1 hour[/] after the last activity tried[/] ([blue]{LastActivity - DateTime.Now.AddHours(-1)}[/] remaining)");
             if (errors.nothingToDo)
                 AnsiConsole.MarkupLine("[red]You have nothing to do today, come back later[/]");
-            return;
+            yield break;
         }
         ReselectActivity:
         var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>()
@@ -165,7 +166,7 @@ class Brain
                 ..Mood is <= Mood.Awakened || Plays >= 2 ? Array.Empty<Activity>() : [Activity.Play]])
                 .UseConverter(a => a is Activity.Eat ? $"Eat {CurrentMeal}" : a.ToString()));
         if (activity is (Activity)(-1))
-            return;
+            yield break;
         var numDice = Mood switch
         {
             Mood.Content => 6,
@@ -263,7 +264,11 @@ class Brain
                     Fog--;
                     AnsiConsole.MarkupLine($"Fog: [blue]{Fog}[/]");
                     if (Fog > 0)
+                    {
+                        LastActivity = DateTime.Now;
+                        yield return null;
                         goto AfterClean;
+                    }
                     break;
                 case Activity.Play:
                     Plays++;

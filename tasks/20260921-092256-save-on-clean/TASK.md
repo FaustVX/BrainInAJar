@@ -1,6 +1,6 @@
 # Auto save between `Clean`
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: feature
 
