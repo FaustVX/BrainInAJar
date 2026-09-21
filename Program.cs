@@ -271,7 +271,7 @@ static Data GetOrCreateBrain(FileInfo saveFile)
     }
     catch
     {
-        var brain = new Brain() { Name = AnsiConsole.Ask<string>("Brain's name ?") };
+        var brain = new Brain() { Name = AnsiConsole.Ask<string>("Brain's name ?", Path.GetFileNameWithoutExtension(saveFile.Name)) };
         var data = new Data(brain, []);
         Save(data, saveFile);
         return data;
