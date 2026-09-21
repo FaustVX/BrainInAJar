@@ -1,0 +1,3 @@
+[submodule "thirdparty/tatr"]
+	path = thirdparty/tatr
+	url = https://github.com/tsoding/tatr
