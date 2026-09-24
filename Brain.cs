@@ -244,7 +244,7 @@ class Brain
                                         continue;
                                     else if (dice[a] + dice[b] == dice[c] + dice[d])
                                     {
-                                        (die1, die2, die3, die4, success) = ((a, dice[a]), (b, dice[b]), (c, dice[c]), (d, dice[d]), true);
+                                        (die1, die2, die3, die4, reach, success) = ((a, dice[a]), (b, dice[b]), (c, dice[c]), (d, dice[d]), dice[a] + dice[b], true);
                                         return;
                                     }
                     success = false;
