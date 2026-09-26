@@ -14,9 +14,9 @@ public class ProgressBar(float value = 0, float maxValue = 100) : IRenderable
     public Style CarretStyle { get; set; } = Style.Plain;
     public Style RemainingStyle { get; set; } = Style.Plain with { Foreground = Color.Orange1 };
     public char CompletedChar { get; set; } = '-';
-    public string NonStartedCarretMarkup { get; set; } = "|";
+    public string? NonStartedCarretMarkup { get; set; }
     public string CarretMarkup { get; set; } = "|";
-    public string CompletedCarretMarkup { get; set; } = "|";
+    public string? CompletedCarretMarkup { get; set; }
     public char RemainingChar { get; set; } = '-';
 
     public Measurement Measure(RenderOptions options, int maxWidth)
@@ -34,7 +34,7 @@ public class ProgressBar(float value = 0, float maxValue = 100) : IRenderable
     }
 
     private string GetCarretMarkup()
-    => Value < 0 ? NonStartedCarretMarkup :
+    => (Value < 0 ? NonStartedCarretMarkup :
        Value > MaxValue ? CompletedCarretMarkup :
-       CarretMarkup;
+       CarretMarkup) ?? CarretMarkup;
 }
