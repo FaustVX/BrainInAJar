@@ -170,13 +170,13 @@ while (true)
             var lastMoodCheck = DateTime.Now - brain.LastMoodCheck;
             grid.AddRow(new Text("Last Activity"), new ProgressBar((float)lastActivity.TotalSeconds, (float)TimeSpan.FromHours(1).TotalSeconds)
             {
-                CarretString = $"|{60-(int)Math.Clamp(lastActivity.TotalMinutes, 0, 60)}|",
+                CarretMarkup = $"|{60-(int)Math.Clamp(lastActivity.TotalMinutes, 0, 60)}|",
                 RemainingChar = '>',
             });
             var remainingMoodCheck = TimeSpan.FromDays(1) - lastMoodCheck;
             grid.AddRow(new Text("Last Mood Check"), new ProgressBar((float)lastMoodCheck.TotalMinutes, (float)TimeSpan.FromDays(1).TotalMinutes)
             {
-                CarretString = $"|{(int)Math.Clamp(remainingMoodCheck.TotalHours, 0, 24)}h{remainingMoodCheck.Minutes}m|",
+                CarretMarkup = $"|{(int)Math.Clamp(remainingMoodCheck.TotalHours, 0, 24)}h{remainingMoodCheck.Minutes}m|",
                 RemainingChar = '>',
             });
             grid.AddRow(new Rule(), new Rule());
