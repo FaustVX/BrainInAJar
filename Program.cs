@@ -170,13 +170,15 @@ while (true)
             var lastMoodCheck = DateTime.Now - brain.LastMoodCheck;
             grid.AddRow(new Text("Last Activity"), new ProgressBar((float)lastActivity.TotalSeconds, (float)TimeSpan.FromHours(1).TotalSeconds)
             {
-                CarretMarkup = $"|{60-(int)Math.Clamp(lastActivity.TotalMinutes, 0, 60)}m|",
+                CarretMarkup = $"|{60-(int)lastActivity.TotalMinutes}m|",
+                CompletedCarretMarkup = $"|+{(int)lastActivity.TotalMinutes-60}m|",
                 RemainingChar = '>',
             });
             var remainingMoodCheck = TimeSpan.FromDays(1) - lastMoodCheck;
             grid.AddRow(new Text("Last Mood Check"), new ProgressBar((float)lastMoodCheck.TotalMinutes, (float)TimeSpan.FromDays(1).TotalMinutes)
             {
-                CarretMarkup = $"|{(int)Math.Clamp(remainingMoodCheck.TotalHours, 0, 24)}h{remainingMoodCheck.Minutes}m|",
+                CarretMarkup = $"|{(int)remainingMoodCheck.TotalHours}h{remainingMoodCheck.Minutes}m|",
+                CompletedCarretMarkup = $"|+{(int)lastMoodCheck.TotalHours-24}h{lastMoodCheck.Minutes}m|",
                 RemainingChar = '>',
             });
             grid.AddRow(new Rule(), new Rule());
@@ -192,14 +194,18 @@ while (true)
             }
         }
         grid.AddRow(new Rule(), new Rule());
-        if (brain.DiceStats.Total != 0)
-            grid.AddRow(new Markup("Dice Ratio"), new ProgressBar(brain.DiceStats.Wins, brain.DiceStats.Total){CarretMarkup=$"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P2})"});
-        else
-            grid.AddRow("Dice Ratio", "-");
-        if (brain.DaysStats.Total != 0)
-            grid.AddRow(new Markup("Days Ratio"), new ProgressBar(brain.DaysStats.Wins, brain.DaysStats.Total){CarretMarkup=$"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P2})"});
-        else
-            grid.AddRow("Days Ratio", "-");
+        grid.AddRow(new Markup("Dice Ratio"), new ProgressBar(brain.DiceStats.Wins, brain.DiceStats.Total)
+        {
+            NonStartedCarretMarkup = "0%",
+            CarretMarkup = $"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P2})",
+            CompletedCarretMarkup = $"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P2})",
+        });
+        grid.AddRow(new Markup("Days Ratio"), new ProgressBar(brain.DaysStats.Wins, brain.DaysStats.Total)
+        {
+            NonStartedCarretMarkup = "0%",
+            CarretMarkup = $"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P2})",
+            CompletedCarretMarkup = $"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P2})",
+        });
         var outer = new Grid();
         outer.AddColumns(1);
         outer.AddRow(new FigletText(brain.Name));
