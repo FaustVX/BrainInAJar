@@ -167,12 +167,18 @@ while (true)
         {
             grid.AddRow("Current Date Time", DateTime.Now.ToString());
             var lastActivity = DateTime.Now - brain.LastActivity;
+            var lastMoodCheck = DateTime.Now - brain.LastMoodCheck;
             grid.AddRow(new Text("Last Activity"), new ProgressBar((float)lastActivity.TotalSeconds, (float)TimeSpan.FromHours(1).TotalSeconds)
             {
                 CarretString = $"|{60-(int)Math.Clamp(lastActivity.TotalMinutes, 0, 60)}|",
                 RemainingChar = '>',
             });
-            grid.AddRow(new Text("Last Mood Check"), new Markup($"[{LastMoodColor(brain)}]{DateTime.Now - brain.LastMoodCheck}[/]"));
+            var remainingMoodCheck = TimeSpan.FromDays(1) - lastMoodCheck;
+            grid.AddRow(new Text("Last Mood Check"), new ProgressBar((float)lastMoodCheck.TotalMinutes, (float)TimeSpan.FromDays(1).TotalMinutes)
+            {
+                CarretString = $"|{(int)Math.Clamp(remainingMoodCheck.TotalHours, 0, 24)}h{remainingMoodCheck.Minutes}m|",
+                RemainingChar = '>',
+            });
             grid.AddRow(new Rule(), new Rule());
             grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
             if (brain.DayComplete)
@@ -214,9 +220,6 @@ while (true)
             Mood.Content => "green",
             _ => throw new UnreachableException(),
         };
-
-        static string LastMoodColor(Brain brain)
-        => TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(brain.LastMoodCheck) ? "on" : "green";
 
         static string FoodLevelColor(Brain brain)
         => brain.FoodLevel switch
