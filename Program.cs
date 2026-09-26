@@ -167,7 +167,7 @@ while (true)
         {
             grid.AddRow("Current Date Time", DateTime.Now.ToString());
             var lastActivity = DateTime.Now - brain.LastActivity;
-            var lastMoodCheck = DateTime.Now - brain.LastMoodCheck;
+            var lastMoodCheck = DateTime.Now - brain.LastMoodCheck.ToDateTime(new(), DateTimeKind.Local);
             grid.AddRow(new Text("Last Activity"), new ProgressBar((float)lastActivity.TotalSeconds, (float)TimeSpan.FromHours(1).TotalSeconds)
             {
                 CarretMarkup = $"|{60-(int)lastActivity.TotalMinutes}m|",

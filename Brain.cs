@@ -11,8 +11,8 @@ class Brain
     public DateOnly CreatedAt { get; init; } = DateOnly.FromDateTime(DateTime.Now);
     public DateTime LastActivity { get; set; } = DateTime.Now.AddHours(-1);
     public bool ActivityUnavailable => DateTime.Now.AddHours(-1) < LastActivity || this[CurrentMeal] && Fog <= 0 && (Mood is <= Mood.Awakened || Plays >= 2);
-    public DateTime LastMoodCheck { get; set; } = DateTime.Now;
-    public bool MoodCheckUnavailable => TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(LastMoodCheck);
+    public DateOnly LastMoodCheck { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+    public bool MoodCheckUnavailable => TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0) || DateOnly.FromDateTime(DateTime.Now) <= LastMoodCheck;
     public Mood Mood
     {
         get; set
@@ -76,7 +76,7 @@ class Brain
         var errors = (morning: false, sameDay: false);
         if (TimeOnly.FromDateTime(DateTime.Now) >= new TimeOnly(12, 0))
             errors.morning = true;
-        if (DateOnly.FromDateTime(DateTime.Now) <= DateOnly.FromDateTime(LastMoodCheck))
+        if (DateOnly.FromDateTime(DateTime.Now) <= LastMoodCheck)
             errors.sameDay = true;
         if (errors is not (false, false))
         {
@@ -134,7 +134,7 @@ class Brain
                 break;
         }
         DaysStats.Update(DayComplete);
-        LastMoodCheck = DateTime.Now;
+        LastMoodCheck = DateOnly.FromDateTime(DateTime.Now);
         Breakfast = Lunch = Dinner = false;
         Plays = 0;
         Fog = Days += 1;
