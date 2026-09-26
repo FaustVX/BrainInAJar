@@ -194,18 +194,8 @@ while (true)
             }
         }
         grid.AddRow(new Rule(), new Rule());
-        grid.AddRow(new Markup("Dice Ratio"), new ProgressBar(brain.DiceStats.Wins, brain.DiceStats.Total)
-        {
-            NonStartedCarretMarkup = "0%",
-            CarretMarkup = $"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P2})",
-            CompletedCarretMarkup = $"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P2})",
-        });
-        grid.AddRow(new Markup("Days Ratio"), new ProgressBar(brain.DaysStats.Wins, brain.DaysStats.Total)
-        {
-            NonStartedCarretMarkup = "0%",
-            CarretMarkup = $"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P2})",
-            CompletedCarretMarkup = $"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P2})",
-        });
+        grid.AddRow(new Markup("Dice Ratio"), ShowStatProgress(brain.DiceStats));
+        grid.AddRow(new Markup("Days Ratio"), ShowStatProgress(brain.DaysStats));
         var outer = new Grid();
         outer.AddColumns(1);
         outer.AddRow(new FigletText(brain.Name));
@@ -268,6 +258,13 @@ while (true)
         {
             0 => "red",
             _ => "green",
+        };
+
+        static ProgressBar ShowStatProgress(Stats stats)
+        => new(stats.Wins, stats.Total)
+        {
+            NonStartedCarretMarkup = "0%",
+            CarretMarkup = $"{stats.Wins}/{stats.Total} ({stats.Rate:P2})",
         };
     }
 }
