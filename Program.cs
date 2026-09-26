@@ -170,7 +170,7 @@ while (true)
             var lastMoodCheck = DateTime.Now - brain.LastMoodCheck;
             grid.AddRow(new Text("Last Activity"), new ProgressBar((float)lastActivity.TotalSeconds, (float)TimeSpan.FromHours(1).TotalSeconds)
             {
-                CarretMarkup = $"|{60-(int)Math.Clamp(lastActivity.TotalMinutes, 0, 60)}|",
+                CarretMarkup = $"|{60-(int)Math.Clamp(lastActivity.TotalMinutes, 0, 60)}m|",
                 RemainingChar = '>',
             });
             var remainingMoodCheck = TimeSpan.FromDays(1) - lastMoodCheck;
