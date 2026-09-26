@@ -34,7 +34,7 @@ public class ProgressBar(float value = 0, float maxValue = 100) : IRenderable
     }
 
     private string GetCarretMarkup()
-    => Value <= 0 ? NonStartedCarretMarkup :
-       Value >= MaxValue ? CompletedCarretMarkup :
+    => Value < 0 ? NonStartedCarretMarkup :
+       Value > MaxValue ? CompletedCarretMarkup :
        CarretMarkup;
 }
