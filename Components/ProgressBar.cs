@@ -7,7 +7,9 @@ public class ProgressBar(float value = 0, float maxValue = 100) : IRenderable
 {
     public float Value { get; set; } = value;
     public float MaxValue { get; set; } = maxValue;
-    public float Percent => Value / MaxValue;
+    public float Percent => Value <= 0 ? 0f:
+        Value >= MaxValue ? 1f:
+        Value / MaxValue;
     public Style CompletedStyle { get; set; } = Style.Plain with { Foreground = Color.Green };
     public Style CarretStyle { get; set; } = Style.Plain;
     public Style RemainingStyle { get; set; } = Style.Plain with { Foreground = Color.Orange1 };
