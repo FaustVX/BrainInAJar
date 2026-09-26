@@ -192,8 +192,14 @@ while (true)
             }
         }
         grid.AddRow(new Rule(), new Rule());
-        grid.AddRow("Dice Ratio", $"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P}%)");
-        grid.AddRow("Days Ratio", $"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P}%)");
+        if (brain.DiceStats.Total != 0)
+            grid.AddRow(new Markup("Dice Ratio"), new ProgressBar(brain.DiceStats.Wins, brain.DiceStats.Total){CarretMarkup=$"{brain.DiceStats.Wins}/{brain.DiceStats.Total} ({brain.DiceStats.Rate:P2})"});
+        else
+            grid.AddRow("Dice Ratio", "-");
+        if (brain.DaysStats.Total != 0)
+            grid.AddRow(new Markup("Days Ratio"), new ProgressBar(brain.DaysStats.Wins, brain.DaysStats.Total){CarretMarkup=$"{brain.DaysStats.Wins}/{brain.DaysStats.Total} ({brain.DaysStats.Rate:P2})"});
+        else
+            grid.AddRow("Days Ratio", "-");
         var outer = new Grid();
         outer.AddColumns(1);
         outer.AddRow(new FigletText(brain.Name));
