@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using BrainInAJar;
+using BrainInAJar.Components;
 
 var arguments = Arguments.Parse(args);
 
@@ -166,7 +167,11 @@ while (true)
         {
             grid.AddRow("Current Date Time", DateTime.Now.ToString());
             var lastActivity = DateTime.Now - brain.LastActivity;
-            grid.AddRow(new Text("Last Activity"), new Markup($"[{(lastActivity.TotalHours >= 1 ? "green" : "red")}]{lastActivity}[/]"));
+            grid.AddRow(new Text("Last Activity"), new ProgressBar((float)lastActivity.TotalSeconds, (float)TimeSpan.FromHours(1).TotalSeconds)
+            {
+                CarretString = $"|{60-(int)Math.Clamp(lastActivity.TotalMinutes, 0, 60)}|",
+                RemainingChar = '>',
+            });
             grid.AddRow(new Text("Last Mood Check"), new Markup($"[{LastMoodColor(brain)}]{DateTime.Now - brain.LastMoodCheck}[/]"));
             grid.AddRow(new Rule(), new Rule());
             grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
