@@ -13,11 +13,11 @@ public class ProgressBar(float value = 0, float maxValue = 100) : IRenderable
     public Style CompletedStyle { get; set; } = Style.Plain with { Foreground = Color.Green };
     public Style CarretStyle { get; set; } = Style.Plain;
     public Style RemainingStyle { get; set; } = Style.Plain with { Foreground = Color.Orange1 };
-    public char CompletedChar { get; set; } = '-';
+    public char CompletedChar { get; set; } = '─';
     public string? NonStartedCarretMarkup { get; set; }
     public string CarretMarkup { get; set; } = "|";
     public string? CompletedCarretMarkup { get; set; }
-    public char RemainingChar { get; set; } = '-';
+    public char RemainingChar { get; set; } = '─';
 
     public Measurement Measure(RenderOptions options, int maxWidth)
     => new(new Markup(GetCarretMarkup(), CarretStyle).Length + 1, Math.Max(new Markup(GetCarretMarkup(), CarretStyle).Length + 1, maxWidth));
