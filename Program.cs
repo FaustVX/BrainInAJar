@@ -171,9 +171,15 @@ while (true)
             var remainingActivity = TimeSpan.FromHours(1).Subtract(lastActivity);
             var lastMoodCheck = now - brain.LastMoodCheck.ToDateTime(new(), DateTimeKind.Local);
             var remainingMoodCheck = TimeSpan.FromDays(1).Subtract(lastMoodCheck);
+            var lastString = remainingActivity switch
+            {
+                { Ticks: < 0 } => $"{remainingActivity:\\+%h\\h%m\\m}",
+                { TotalMinutes: < 5, TotalSeconds: var sec } => $"{(int)sec}s",
+                { TotalMinutes: var min } => $"{(int)min}m",
+            };
             grid.AddRow(new Text("Last Activity"), new ProgressBar((float)lastActivity.TotalSeconds, (float)TimeSpan.FromHours(1).TotalSeconds)
             {
-                CarretMarkup = $"|{(int)remainingActivity.TotalMinutes:0;\\+0}m|",
+                CarretMarkup = $"|{lastString}|",
                 RemainingChar = '>',
             });
             grid.AddRow(new Text("Last Mood Check"), new ProgressBar((float)lastMoodCheck.TotalMinutes, (float)TimeSpan.FromDays(1).TotalMinutes)
