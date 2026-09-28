@@ -13,6 +13,7 @@ Console.CancelKeyPress += (_, e) =>
 {
     Console.ResetColor();
     Console.CursorVisible = true;
+    Console.WriteLine();
 };
 
 while (true)
