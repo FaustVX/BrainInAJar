@@ -194,7 +194,12 @@ while (true)
                 RemainingChar = '>',
             });
             grid.AddRow(new Rule(), new Rule());
-            grid.AddRow(new Text("Mood"), new Markup($"[{ToMoodColor(brain)}]{brain.Mood}[/]"));
+            grid.AddRow(new Text("Mood"), new ProgressBar((int)brain.Mood - 1, 3) // Mood.Dead is not a representable mood
+            {
+                CompletedStyle = Style.Parse(ToMoodColor(brain.Mood - 1)),
+                CarretMarkup = $"|[{ToMoodColor(brain.Mood)}]{brain.Mood}[/]|",
+                RemainingStyle = Style.Parse(ToMoodColor(brain.Mood + 1)),
+            });
             if (brain.DayComplete)
                 grid.AddRow("Day complete", "[green]True[/]");
             else
@@ -229,15 +234,15 @@ while (true)
             _ => "gold1",
         };
 
-        static string ToMoodColor(Brain brain)
-        => brain.Mood switch
+        static string ToMoodColor(Mood mood)
+        => mood switch
         {
             Mood.Dead => "bold red",
             Mood.Awakened => "red",
             Mood.Troubled => "darkOrange",
             Mood.Stable => "blue",
             Mood.Content => "green",
-            _ => throw new UnreachableException(),
+            _ => "default",
         };
 
         static string FoodLevelColor(Brain brain)
@@ -247,7 +252,7 @@ while (true)
             1 => "darkOrange",
             2 => "blue",
             3 => "green",
-            _ => throw new UnreachableException(),
+            _ => "default",
         };
 
         static string MealStyle(Brain brain, Meal meal)
