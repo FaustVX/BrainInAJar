@@ -1,6 +1,6 @@
 # Improve CLI argument parser
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 100
 - TAGS: feature
 
