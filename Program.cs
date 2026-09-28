@@ -171,21 +171,26 @@ while (true)
             var remainingActivity = TimeSpan.FromHours(1).Subtract(lastActivity);
             var lastMoodCheck = now - brain.LastMoodCheck.ToDateTime(new(), DateTimeKind.Local);
             var remainingMoodCheck = TimeSpan.FromDays(1).Subtract(lastMoodCheck);
-            var lastString = remainingActivity switch
+            var activityString = remainingActivity switch
             {
-                { Ticks: < 0 } => $"{remainingActivity:\\+%h\\h%m\\m}",
+                { Ticks: < 0, TotalHours: var hour, Minutes: var min } => $"+{(int)hour}h{min}m",
                 { TotalMinutes: < 5, TotalSeconds: var sec } => $"{(int)sec}s",
                 { TotalMinutes: var min } => $"{(int)min}m",
             };
+            var moodString = remainingMoodCheck switch
+            {
+                { Ticks: < 0, TotalHours: var hour, Minutes: var min } => $"+{(int)hour}h{min}m",
+                { TotalMinutes: < 5, Minutes: var min, Seconds: var sec } => $"{min}m{sec}s",
+                { TotalHours: var hour, Minutes: var min } => $"{(int)hour}h{min}m",
+            };
             grid.AddRow(new Text("Last Activity"), new ProgressBar((float)lastActivity.TotalSeconds, (float)TimeSpan.FromHours(1).TotalSeconds)
             {
-                CarretMarkup = $"|{lastString}|",
+                CarretMarkup = $"|{activityString}|",
                 RemainingChar = '>',
             });
             grid.AddRow(new Text("Last Mood Check"), new ProgressBar((float)lastMoodCheck.TotalMinutes, (float)TimeSpan.FromDays(1).TotalMinutes)
             {
-                CarretMarkup = $"|{remainingMoodCheck:%h\\h%m\\m}|",
-                CompletedCarretMarkup = $"|{remainingMoodCheck:\\+%h\\h%m\\m}|",
+                CarretMarkup = $"|{moodString}|",
                 RemainingChar = '>',
             });
             grid.AddRow(new Rule(), new Rule());
