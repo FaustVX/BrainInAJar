@@ -7,7 +7,7 @@ using Spectre.Console.Rendering;
 using BrainInAJar;
 using BrainInAJar.Components;
 
-var arguments = Arguments.Parse(args);
+var arguments = await Arguments.ParseAsync(args);
 
 Console.CancelKeyPress += (_, e) =>
 {
@@ -207,7 +207,7 @@ while (true)
         grid.AddRow(new Markup("Days Ratio"), ShowStatProgress(brain.DaysStats));
         var outer = new Grid();
         outer.AddColumns(1);
-        outer.AddRow(new FigletText(brain.Name));
+        outer.AddRow(new FigletText(Arguments.Instance.FigletFont, brain.Name));
         outer.AddRow(grid);
         return new Panel(outer).Border(BoxBorder.Beveled);
 

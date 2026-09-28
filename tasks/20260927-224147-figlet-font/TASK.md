@@ -1,6 +1,6 @@
 # Add a way to pass CLI argument for changing the Figlet font
 
-- STATUS: OPEN
+- STATUS: Closed
 - PRIORITY: 50
 - TAGS: feature
 
