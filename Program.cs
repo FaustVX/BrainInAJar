@@ -207,6 +207,10 @@ while (true)
             {
                 var breakdown = new Markup($"[{MealStyle(brain, Meal.Breakfast)}]Breakfast[/]-[{MealStyle(brain, Meal.Lunch)}]Lunch[/]-[{MealStyle(brain, Meal.Dinner)}]Dinner[/]");
                 var food = new Columns(new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]"), breakdown);
+                grid.AddRow(new Text("Day complete"), new ProgressBar(brain.FoodLevel + brain.Plays + (brain.Days - brain.Fog), 3 + 2 + brain.Days)
+                {
+                    CarretMarkup = $"|{brain.FoodLevel + brain.Plays + (brain.Days - brain.Fog)}/{3 + 2 + brain.Days}|",
+                });
                 grid.AddRow(new Text("Food"), food);
                 grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}/2[/]"));
                 grid.AddRow(new Text("Fog"), new Grid()
@@ -214,10 +218,6 @@ while (true)
                     .AddRow(new Markup($"[{FogColor(brain)}]{brain.Fog}/{brain.Days}[/]"),
                         new ProgressBar(brain.Days - brain.Fog, brain.Days)));
                 grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}/1[/]"));
-                grid.AddRow(new Text("Day complete"), new ProgressBar(brain.FoodLevel + brain.Plays + (brain.Days - brain.Fog), 3 + 2 + brain.Days)
-                {
-                    CarretMarkup = $"|{brain.FoodLevel + brain.Plays + (brain.Days - brain.Fog)}/{3 + 2 + brain.Days}|",
-                });
             }
         }
         grid.AddRow(new Rule(), new Rule());
