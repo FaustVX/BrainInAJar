@@ -174,13 +174,13 @@ while (true)
             var remainingMoodCheck = TimeSpan.FromDays(1).Subtract(lastMoodCheck);
             var activityString = remainingActivity switch
             {
-                { Ticks: < 0, TotalHours: var hour, Minutes: var min } => $"+{(int)hour}h{min}m",
+                { Ticks: < 0, TotalHours: var hour, Minutes: var min } => $"+{-(int)hour}h{min}m",
                 { TotalMinutes: < 5, TotalSeconds: var sec } => $"{(int)sec}s",
                 { TotalMinutes: var min } => $"{(int)min}m",
             };
             var moodString = remainingMoodCheck switch
             {
-                { Ticks: < 0, TotalHours: var hour, Minutes: var min } => $"+{(int)hour}h{min}m",
+                { Ticks: < 0, TotalHours: var hour, Minutes: var min } => $"+{-(int)hour}h{min}m",
                 { TotalMinutes: < 5, Minutes: var min, Seconds: var sec } => $"{min}m{sec}s",
                 { TotalHours: var hour, Minutes: var min } => $"{(int)hour}h{min}m",
             };
