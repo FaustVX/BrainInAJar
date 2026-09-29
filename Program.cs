@@ -214,6 +214,10 @@ while (true)
                     .AddRow(new Markup($"[{FogColor(brain)}]{brain.Fog}/{brain.Days}[/]"),
                         new ProgressBar(brain.Days - brain.Fog, brain.Days)));
                 grid.AddRow(new Text("Love"), new Markup($"[{LoveColor(brain)}]{brain.Love}/1[/]"));
+                grid.AddRow(new Text("Day complete"), new ProgressBar(brain.FoodLevel + brain.Plays + (brain.Days - brain.Fog), 3 + 2 + brain.Days)
+                {
+                    CarretMarkup = $"|{brain.FoodLevel + brain.Plays + (brain.Days - brain.Fog)}/{3 + 2 + brain.Days}|",
+                });
             }
         }
         grid.AddRow(new Rule(), new Rule());
