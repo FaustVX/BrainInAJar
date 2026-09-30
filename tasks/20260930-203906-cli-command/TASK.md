@@ -4,4 +4,8 @@
 - PRIORITY: 75
 - TAGS: feature
 
-No description.
+## Description
+- `run mood|status|history`:
+  - easy to implement
+- `run activity|edit`:
+  - need to have an non-interactive way to use it, maybe with complex cli arguments
