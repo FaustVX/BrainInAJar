@@ -19,9 +19,10 @@ Console.CancelKeyPress += (_, e) =>
 while (true)
 {
     var (brain, history) = GetOrCreateBrain(arguments.SaveFile);
-    AnsiConsole.Write(ShowStatus(brain));
+    if (Arguments.Instance.Run?.Selection is null)
+        AnsiConsole.Write(ShowStatus(brain));
     while (brain.Mood is not Mood.Dead)
-        switch (AnsiConsole.Prompt(new SelectionPrompt<Selection>()
+        switch (Arguments.Instance.Run?.Selection ?? AnsiConsole.Prompt(new SelectionPrompt<Selection>()
             .Title("Do what ?")
             .WrapAround()
             .AddChoices([
@@ -50,20 +51,32 @@ while (true)
                 }
                 AnsiConsole.Write(ShowStatus(brain));
                 Save(new(brain, history), arguments.SaveFile);
+
+                if (Arguments.Instance.Run is not null)
+                    return;
                 break;
             case Selection.Activity:
                 foreach (var _ in brain.DoActivity())
                     Save(new(brain, history), arguments.SaveFile);
                 Save(new(brain, history), arguments.SaveFile);
+
+                if (Arguments.Instance.Run is not null)
+                    return;
                 AnsiConsole.Write(ShowStatus(brain));
                 break;
             case Selection.Status:
                 (brain, history) = GetOrCreateBrain(arguments.SaveFile);
                 AnsiConsole.Write(ShowStatus(brain));
+
+                if (Arguments.Instance.Run is not null)
+                    return;
                 break;
             case Selection.History:
                 var list = new Columns(history.Select(ShowStatus));
                 AnsiConsole.Write(list);
+
+                if (Arguments.Instance.Run is not null)
+                    return;
                 break;
             case Selection.ManualEntry:
                 (brain, history) = GetOrCreateBrain(arguments.SaveFile);
