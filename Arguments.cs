@@ -30,6 +30,8 @@ record class Arguments
         ["activity", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.Activity },
         ["status", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.Status },
         ["history", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.History },
+        ["edit", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.ManualEntry },
+        ["quit", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.Quit },
         var tail => CreateWithRefArgs(tail, out outer),
     };
 
