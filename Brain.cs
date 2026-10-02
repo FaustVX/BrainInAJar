@@ -179,41 +179,21 @@ class Brain
         var dice = GetRandom(activity).GetItems([1, 2, 3, 4, 5, 6], numDice);
         AnsiConsole.MarkupLine("your dice: [green]" + Ext.Join("[/], [green]", "[/] and [green]", dice) + "[/]");
         ReselectDice:
-        var die1 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
-            .Title($"Select [blue]1st[/] die")
-            .AddChoices(dice.Index())
-            .AddCancelResult((0, 0))
-            .WrapAround()
-            .UseConverter(t => t.Item2.ToString()));
+        var die1 = SelectDice($"Select [blue]1st[/] die", dice.Index());
         if (die1 is (0, 0))
             goto ReselectActivity;
-        var die2 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
-            .Title($"Select [blue]2nd[/] die ([green]{die1.Item2}[/])")
-            .AddChoices(dice.Index().Except([die1]))
-            .AddCancelResult((0, 0))
-            .WrapAround()
-            .UseConverter(t => t.Item2.ToString()));
+        var die2 = SelectDice($"Select [blue]2nd[/] die ([green]{die1.value}[/])", dice.Index().Except([die1]));
         if (die2 is (0, 0))
             goto ReselectDice;
-        var reach = die1.Item2 + die2.Item2;
+        var reach = die1.value + die2.value;
         AnsiConsole.MarkupLine($"sum to reach: [green]{reach}[/]");
-        var die3 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
-            .Title($"Select [blue]3rd[/] die")
-            .AddChoices(dice.Index().Except([die1, die2]))
-            .AddCancelResult((0, 0))
-            .WrapAround()
-            .UseConverter(t => t.Item2.ToString()));
+        var die3 = SelectDice($"Select [blue]3rd[/] die", dice.Index().Except([die1, die2]));
         if (die3 is (0, 0))
             goto ReselectDice;
-        var die4 = AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
-            .Title($"Select [blue]4th[/] die ([green]{die3.Item2}[/])")
-            .AddChoices(dice.Index().Except([die1, die2, die3]))
-            .AddCancelResult((0, 0))
-            .WrapAround()
-            .UseConverter(t => t.Item2.ToString()));
+        var die4 = SelectDice($"Select [blue]4th[/] die ([green]{die3.value}[/])", dice.Index().Except([die1, die2, die3]));
         if (die4 is (0, 0))
             goto ReselectDice;
-        var success = die3.Item2 + die4.Item2 == reach;
+        var success = die3.value + die4.value == reach;
         if (!success)
             switch (AnsiConsole.Prompt(new SelectionPrompt<bool>()
                 .Title("What to do ?")
@@ -253,7 +233,7 @@ class Brain
         DiceStats.Update(success);
         if (success)
         {
-            AnsiConsole.MarkupLine($"You [green bold]succeded[/] with 2 equals pairs: [green]{die1.Item2}[/] + [green]{die2.Item2}[/] = [blue]{reach}[/] = [green]{die3.Item2}[/] + [green]{die4.Item2}[/]");
+            AnsiConsole.MarkupLine($"You [green bold]succeded[/] with 2 equals pairs: [green]{die1.value}[/] + [green]{die2.value}[/] = [blue]{reach}[/] = [green]{die3.value}[/] + [green]{die4.value}[/]");
             switch (activity)
             {
                 case Activity.Eat:
@@ -277,8 +257,16 @@ class Brain
             }
         }
         else
-            AnsiConsole.MarkupLine($"You [red bold]failed[/] with 2 differents pairs: [green]{die1.Item2}[/] + [green]{die2.Item2}[/] != [green]{die3.Item2}[/] + [green]{die4.Item2}[/]");
+            AnsiConsole.MarkupLine($"You [red bold]failed[/] with 2 differents pairs: [green]{die1.value}[/] + [green]{die2.value}[/] != [green]{die3.value}[/] + [green]{die4.value}[/]");
         LastActivity = DateTime.Now;
+
+        static (int index, int value) SelectDice(string title, IEnumerable<(int, int)> dice)
+        => AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
+            .Title(title)
+            .AddChoices(dice)
+            .AddCancelResult((0, 0))
+            .WrapAround()
+            .UseConverter(t => t.Item2.ToString()));
     }
 
     private Random GetRandom(Activity context)
