@@ -156,7 +156,7 @@ class Brain
             yield break;
         }
         ReselectActivity:
-        var activity = AnsiConsole.Prompt(new SelectionPrompt<Activity>()
+        var activity = Arguments.Instance.Run?.DoActivity?.Activity ?? AnsiConsole.Prompt(new SelectionPrompt<Activity>()
             .Title("Select the activity")
             .WrapAround()
             .AddCancelResult((Activity)(-1))
@@ -178,23 +178,14 @@ class Brain
         AnsiConsole.MarkupLine($"You will play the dice game with [underline italic blue]{Name}[/] to [green]{(activity is Activity.Eat ? $"Eat {CurrentMeal}" : activity)}[/] with [green]{numDice}[/] dice because you are [underline italic blue]{Mood}[/]");
         var dice = GetRandom(activity).GetItems([1, 2, 3, 4, 5, 6], numDice);
         AnsiConsole.MarkupLine("your dice: [green]" + Ext.Join("[/], [green]", "[/] and [green]", dice) + "[/]");
+        if (Arguments.Instance.Run?.DoActivity is { Dice: null })
+            yield break;
         ReselectDice:
-        var die1 = SelectDice($"Select [blue]1st[/] die", dice.Index());
-        if (die1 is (0, 0))
+        if (!SelectDice(dice, out var die1, out var die2, out var die3, out var die4))
             goto ReselectActivity;
-        var die2 = SelectDice($"Select [blue]2nd[/] die ([green]{die1.value}[/])", dice.Index().Except([die1]));
-        if (die2 is (0, 0))
-            goto ReselectDice;
         var reach = die1.value + die2.value;
-        AnsiConsole.MarkupLine($"sum to reach: [green]{reach}[/]");
-        var die3 = SelectDice($"Select [blue]3rd[/] die", dice.Index().Except([die1, die2]));
-        if (die3 is (0, 0))
-            goto ReselectDice;
-        var die4 = SelectDice($"Select [blue]4th[/] die ([green]{die3.value}[/])", dice.Index().Except([die1, die2, die3]));
-        if (die4 is (0, 0))
-            goto ReselectDice;
         var success = die3.value + die4.value == reach;
-        if (!success)
+        if (!success && Arguments.Instance.Run?.DoActivity is null)
             switch (AnsiConsole.Prompt(new SelectionPrompt<bool>()
                 .Title("What to do ?")
                 .AddChoices([false, true])
@@ -260,13 +251,53 @@ class Brain
             AnsiConsole.MarkupLine($"You [red bold]failed[/] with 2 differents pairs: [green]{die1.value}[/] + [green]{die2.value}[/] != [green]{die3.value}[/] + [green]{die4.value}[/]");
         LastActivity = DateTime.Now;
 
-        static (int index, int value) SelectDice(string title, IEnumerable<(int, int)> dice)
+        static (int index, int value) SelectDicePrompt(string title, IEnumerable<(int, int)> dice)
         => AnsiConsole.Prompt(new SelectionPrompt<(int i, int d)>()
             .Title(title)
             .AddChoices(dice)
             .AddCancelResult((0, 0))
             .WrapAround()
             .UseConverter(t => t.Item2.ToString()));
+
+        static bool SelectDice(int[] dice, out (int index, int value) die1, out (int index, int value) die2, out (int index, int value) die3, out (int index, int value) die4)
+        {
+            if (Arguments.Instance.Run?.DoActivity?.Dice is {} sel)
+            {
+                SelectDiceFromArgs(dice, sel, out die1, out die2, out die3, out die4);
+                return true;
+            }
+            return SelectDiceFromInput(dice, out die1, out die2, out die3, out die4);
+        }
+
+        static void SelectDiceFromArgs(int[] dice, int[] selection, out (int index, int value) die1, out (int index, int value) die2, out (int index, int value) die3, out (int index, int value) die4)
+        {
+            var indices = dice.Index().ToArray();
+            die1 = indices[selection[0]];
+            die2 = indices[selection[1]];
+            die3 = indices[selection[2]];
+            die4 = indices[selection[3]];
+        }
+
+        static bool SelectDiceFromInput(int[] dice, out (int index, int value) die1, out (int index, int value) die2, out (int index, int value) die3, out (int index, int value) die4)
+        {
+            die1 = die2 = die3 = die4 = (0, 0);
+            _ReselectDice:
+            die1 = SelectDicePrompt($"Select [blue]1st[/] die", dice.Index());
+            if (die1 is (0, 0))
+                return false;
+            die2 = SelectDicePrompt($"Select [blue]2nd[/] die ([green]{die1.value}[/])", dice.Index().Except([die1]));
+            if (die2 is (0, 0))
+                goto _ReselectDice;
+            var reach = die1.value + die2.value;
+            AnsiConsole.MarkupLine($"sum to reach: [green]{reach}[/]");
+            die3 = SelectDicePrompt($"Select [blue]3rd[/] die", dice.Index().Except([die1, die2]));
+            if (die3 is (0, 0))
+                goto _ReselectDice;
+            die4 = SelectDicePrompt($"Select [blue]4th[/] die ([green]{die3.value}[/])", dice.Index().Except([die1, die2, die3]));
+            if (die4 is (0, 0))
+                goto _ReselectDice;
+            return true;
+        }
     }
 
     private Random GetRandom(Activity context)
