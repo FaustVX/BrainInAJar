@@ -26,7 +26,7 @@ record class Arguments
     static Run ParseRun(string[] args, out string[] outer)
     => args switch
     {
-        ["mood", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.MoodCheck },
+        ["mood", string name, .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.MoodCheck, NextBrainName = name },
         ["activity", .. var tail] when ParseActivity(tail, out outer) is {} activity => ParseRun(outer, out outer) with { Selection = Selection.Activity, DoActivity = activity },
         ["status", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.Status },
         ["history", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.History },
@@ -130,6 +130,7 @@ record class Run
     public Selection Selection { get; init; }
     public Edit? Edit { get; init; }
     public DoActivity? DoActivity { get; init; }
+    public string? NextBrainName { get; init; }
 }
 
 readonly struct Edit(ManualEntry entry, object value)
