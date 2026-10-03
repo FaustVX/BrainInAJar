@@ -26,22 +26,25 @@ record class Arguments
     };
 
     static Run ParseRun(string[] args, out string[] outer)
-    => args switch
     {
-        ["mood", string name, .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.MoodCheck, NextBrainName = name },
-        ["activity", .. var tail] when ParseActivity(tail, out outer) is {} activity => ParseRun(outer, out outer) with { Selection = Selection.Activity, DoActivity = activity },
-        ["status", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.Status },
-        ["history", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.History },
-        ["edit", var command, var value, .. var tail] when ParseEdit(command, value) is var edit => ParseRun(tail, out outer) with { Selection = Selection.ManualEntry, Edit = edit },
-        ["edit", .. var tail] when HelpEdit() is var entry => ParseRun(tail, out outer) with { Selection = Selection.ManualEntry, Edit = entry },
-        ["quit", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.Quit },
-        var tail => CreateWithRefArgs(tail, out outer),
-    };
+        return args switch
+        {
+            ["mood", string name, .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.MoodCheck, NextBrainName = name },
+            ["activity", .. var tail] when ParseActivity(tail, out outer) is { } activity => ParseRun(outer, out outer) with { Selection = Selection.Activity, DoActivity = activity },
+            ["status", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.Status },
+            ["history", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.History },
+            ["edit", var command, var value, .. var tail] when ParseEdit(command, value) is var edit => ParseRun(tail, out outer) with { Selection = Selection.ManualEntry, Edit = edit },
+            ["edit", .. var tail] when HelpEdit() is var entry => ParseRun(tail, out outer) with { Selection = Selection.ManualEntry, Edit = entry },
+            ["quit", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.Quit },
+            ["--help" or "-h"] => HelpRun(out outer),
+            var tail => CreateWithRefArgs(tail, out outer),
+        };
 
-    static Run CreateWithRefArgs(string[] args, out string[] outer)
-    {
-        outer = args;
-        return new();
+        static Run CreateWithRefArgs(string[] args, out string[] outer)
+        {
+            outer = args;
+            return new();
+        }
     }
 
     static Edit ParseEdit(string edit, string value)
@@ -101,27 +104,36 @@ record class Arguments
 
     static Arguments Help()
     {
-        AnsiConsole.MarkupLine($"[grey]dotnet {Environment.GetCommandLineArgs()[0]}[/] [[<[blue]save file path[/]>]] [[--allow-manual-edit]] [[--figlet-font <[blue]uri/path[/]>]] [[-h|--help]]");
+        AnsiConsole.MarkupLine($"[grey]dotnet {Environment.GetCommandLineArgs()[0]}[/] [[[green]run[/]|[green]create[/] <[blue]... commands[/]>]] [[<[blue]save file path[/]>]] [[--allow-manual-edit]] [[--figlet-font <[blue]uri/path[/]>]] [[-h|--help]]");
+        Environment.Exit(0);
+        throw new System.Diagnostics.UnreachableException();
+    }
+
+    static Run HelpRun(out string[] outer)
+    {
+        outer = default!;
+        AnsiConsole.MarkupLine($"Run commands: [green]mood[/]|[green]activity[/]|[green]status[/]|[green]history[/]|[green]edit[/]|[green]quit[/] [[<[blue]... options[/]>]]");
+        AnsiConsole.MarkupLine($"Activity dice are zero-based indicies");
         Environment.Exit(0);
         throw new System.Diagnostics.UnreachableException();
     }
 
     static Edit HelpEdit()
     {
-        var commands = string.Join(", ", Enumerable.Select([("name", "string"), ("days", "int"), ("mood", "Mood"), ("activity", "datetime"), ("check", "date"), ("breakfast", "bool"), ("lunch", "bool"), ("dinner", "bool"), ("plays", "int"), ("fog", "int"), ("win-roll", "int"), ("loose-roll", "int"), ("win-days", "int"), ("loose-days", "int")], Edit));
-        AnsiConsole.MarkupLine($"Available edit: {commands}");
+        var commands = string.Join("|", Enumerable.Select([("name", "string"), ("days", "int"), ("mood", "Mood"), ("activity", "datetime"), ("check", "date"), ("breakfast", "bool"), ("lunch", "bool"), ("dinner", "bool"), ("plays", "int"), ("fog", "int"), ("win-roll", "int"), ("loose-roll", "int"), ("win-days", "int"), ("loose-days", "int")], Edit));
+        AnsiConsole.MarkupLine($"Edit commands: {commands}");
         Environment.Exit(0);
         throw new System.Diagnostics.UnreachableException();
 
         static string Edit((string command, string type) tuple)
-        => $"[blue]{tuple.command}[/]: [blue]{tuple.type}[/]";
+        => $"[green]{tuple.command}[/] <[blue]{tuple.type}[/]>";
     }
 
     static DoActivity HelpActivity(out string[] outer)
     {
         outer = default!;
-        AnsiConsole.MarkupLine($"Available activity: [blue]eat[/]|[blue]play[/]|[blue]clean[/] [[<[blue]d1[/]> <[blue]d2[/]> <[blue]d3[/]> <[blue]d4[/]>]]");
-        AnsiConsole.MarkupLine($"Activity dice are zero-based indicies");
+        AnsiConsole.MarkupLine($"Activity commands: [green]eat[/]|[green]play[/]|[green]clean[/] [[<[blue]clean continuation code[/]>]] [[<[blue]d1[/]> <[blue]d2[/]> <[blue]d3[/]> <[blue]d4[/]>]]");
+        AnsiConsole.MarkupLine($"Activity dice are zero-based indices");
         Environment.Exit(0);
         throw new System.Diagnostics.UnreachableException();
     }
