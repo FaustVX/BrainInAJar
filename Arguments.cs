@@ -8,9 +8,18 @@ record class Arguments
     public static Arguments Instance { get; private set; } = default!;
     public FileInfo SaveFile { get; init; } = new("save/BrainInAJar.json");
     public bool AllowManualEdit { get; init; } = false;
-    public FigletFont FigletFont { get; init; } = FigletFont.Default;
+    public FigletFont FigletFont { get; init; } = LoadDefaultFont();
     public Run? Run { get; init; }
     public string? NewName { get; private set; }
+
+    static FigletFont LoadDefaultFont()
+    {
+        var file = new FileInfo("font.flf");
+        if (file.Exists)
+            using (var stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.Read))
+                return FigletFont.Load(stream);
+        return FigletFont.Default;
+    }
 
     public static async Task<Arguments> ParseAsync(string[] args)
     => Instance = args switch
