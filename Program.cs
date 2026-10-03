@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
@@ -26,6 +25,17 @@ Console.CancelKeyPress += (_, e) =>
 while (true)
 {
     var (brain, history) = GetOrCreateBrain(arguments.SaveFile);
+    if (arguments.Run?.DoActivity?.List is true)
+    {
+        if (brain.ActivityUnavailable)
+            AnsiConsole.MarkupLine($"[red]Activity unavailable[/]");
+        else
+            AnsiConsole.MarkupLine($"Activity commands: {string.Join('|', Enumerable.Select([
+                ..brain[Brain.CurrentMeal] ? Array.Empty<Activity>() : [Activity.Eat],
+                ..brain.Fog <= 0 ? Array.Empty<Activity>() : [Activity.Clean],
+                ..brain.Mood is <= Mood.Awakened || brain.Plays >= 2 ? Array.Empty<Activity>() : [Activity.Play]], a => $"[green]{a}[/]"))}");
+        return;
+    }
     if (arguments.Run?.Selection is null)
         AnsiConsole.Write(ShowStatus(brain));
     while (brain.Mood is not Mood.Dead)
@@ -46,7 +56,7 @@ while (true)
                     Selection.History => $"Show history ({history.Length} deaths, so far ...)",
                     Selection.ManualEntry => "Manual entry",
                     Selection.Quit => "Quit",
-                    _ => throw new UnreachableException(),
+                    _ => throw new System.Diagnostics.UnreachableException(),
                 })))
         {
             case Selection.MoodCheck:

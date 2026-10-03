@@ -96,18 +96,21 @@ record class Arguments
             ["play", .. var tail] => ParseArgs(tail, out outer) with { Activity = Activity.Play },
             ["clean", [CleanHashCodeStartChar, ..{ Length: 8 } code] , .. var tail] => ParseArgs(tail, out outer) with { Activity = Activity.Clean, CleanCode = code },
             ["clean", .. var tail] => ParseArgs(tail, out outer) with { Activity = Activity.Clean },
+            ["list", .. var tail] => CreateWithRefArgs(tail, out outer) with { List = true },
             ["--help" or "-h"] or _ => HelpActivity(out outer),
         };
 
         static DoActivity ParseArgs(string[] args, out string[] outer)
         {
             if (args is [var a, var b, var c, var d, .. var tail] && ParseDice(a, b, c, d) is {} dice)
-            {
-                outer = tail;
-                return new() { Dice = dice };
-            }
+                return CreateWithRefArgs(tail, out outer) with { Dice = dice };
+            return CreateWithRefArgs(args, out outer);
+        }
+
+        static DoActivity CreateWithRefArgs(string[] args, out string[] outer)
+        {
             outer = args;
-            return new();
+            return new() { Activity = (Activity)(-1) };
         }
 
         static int[]? ParseDice(string a, string b, string c, string d)
@@ -153,6 +156,7 @@ record class Arguments
     static DoActivity HelpActivity(out string[] outer)
     {
         outer = default!;
+        AnsiConsole.MarkupLine($"Activity commands: [green]list[/]");
         AnsiConsole.MarkupLine($"Activity commands: [green]eat[/]|[green]play[/]|[green]clean[/] [[<[blue]clean continuation code[/]>]] [[<[blue]d1[/]> <[blue]d2[/]> <[blue]d3[/]> <[blue]d4[/]>]]");
         AnsiConsole.MarkupLine($"Activity dice are zero-based indices");
         Environment.Exit(0);
@@ -179,4 +183,5 @@ readonly struct DoActivity
     public Activity Activity { get; init; }
     public int[]? Dice { get; init; }
     public string? CleanCode { get; init; }
+    public bool List { get; init; }
 }
