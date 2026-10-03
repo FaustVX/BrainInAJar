@@ -33,8 +33,9 @@ record class Arguments
             ["activity", .. var tail] when ParseActivity(tail, out outer) is { } activity => ParseRun(outer, out outer) with { Selection = Selection.Activity, DoActivity = activity },
             ["status", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.Status },
             ["history", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.History },
-            ["edit", var command, var value, .. var tail] when ParseEdit(command, value) is var edit => ParseRun(tail, out outer) with { Selection = Selection.ManualEntry, Edit = edit },
-            ["edit", .. var tail] when HelpEdit() is var entry => ParseRun(tail, out outer) with { Selection = Selection.ManualEntry, Edit = entry },
+            ["stat", var command, var value, .. var tail] when ParseSetEdit(command, value) is var edit => ParseRun(tail, out outer) with { Selection = Selection.ManualEntry, Edit = edit },
+            ["stat", var command, .. var tail] when ParseGetEdit(command) is var edit => ParseRun(tail, out outer) with { Selection = Selection.ManualEntry, Edit = edit },
+            ["stat", .. var tail] when HelpEdit() is var entry => ParseRun(tail, out outer) with { Selection = Selection.ManualEntry, Edit = entry },
             ["quit", .. var tail] => ParseRun(tail, out outer) with { Selection = Selection.Quit },
             ["--help" or "-h"] => HelpRun(out outer),
             var tail => CreateWithRefArgs(tail, out outer),
@@ -47,7 +48,27 @@ record class Arguments
         }
     }
 
-    static Edit ParseEdit(string edit, string value)
+    static Edit ParseGetEdit(string edit)
+    => edit switch
+    {
+        "name" => new(ManualEntry.Name),
+        "days" => new(ManualEntry.Days),
+        "mood" => new(ManualEntry.Mood),
+        "activity" => new(ManualEntry.LastActivity),
+        "check" => new(ManualEntry.LastMoodCheck),
+        "breakfast" => new(ManualEntry.Breakfast),
+        "lunch" => new(ManualEntry.Lunch),
+        "dinner" => new(ManualEntry.Dinner),
+        "plays" => new(ManualEntry.Plays),
+        "fog" => new(ManualEntry.Fog),
+        "win-roll" => new(ManualEntry.WinRoll),
+        "loose-roll" => new(ManualEntry.LosesRoll),
+        "win-days" => new(ManualEntry.WinDays),
+        "loose-days" => new(ManualEntry.LosesDays),
+        "--help" or "-h" or _ => HelpEdit(),
+    };
+
+    static Edit ParseSetEdit(string edit, string value)
     => edit switch
     {
         "name" => new(ManualEntry.Name, value),
@@ -112,7 +133,7 @@ record class Arguments
     static Run HelpRun(out string[] outer)
     {
         outer = default!;
-        AnsiConsole.MarkupLine($"Run commands: [green]mood[/]|[green]activity[/]|[green]status[/]|[green]history[/]|[green]edit[/]|[green]quit[/] [[<[blue]... options[/]>]]");
+        AnsiConsole.MarkupLine($"Run commands: [green]mood[/]|[green]activity[/]|[green]status[/]|[green]history[/]|[green]stat[/]|[green]quit[/] [[<[blue]... options[/]>]]");
         AnsiConsole.MarkupLine($"Activity dice are zero-based indicies");
         Environment.Exit(0);
         throw new System.Diagnostics.UnreachableException();
@@ -126,7 +147,7 @@ record class Arguments
         throw new System.Diagnostics.UnreachableException();
 
         static string Edit((string command, string type) tuple)
-        => $"[green]{tuple.command}[/] <[blue]{tuple.type}[/]>";
+        => $"[green]{tuple.command}[/] [[<[blue]{tuple.type}[/]>]]";
     }
 
     static DoActivity HelpActivity(out string[] outer)
@@ -147,10 +168,10 @@ record class Run
     public string? NextBrainName { get; init; }
 }
 
-readonly struct Edit(ManualEntry entry, object value)
+readonly struct Edit(ManualEntry entry, object? value = null)
 {
     public ManualEntry ManualEntry { get; init; } = entry;
-    public object Value { get; init; } = value;
+    public object? Value { get; init; } = value;
 }
 
 readonly struct DoActivity

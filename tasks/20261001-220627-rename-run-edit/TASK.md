@@ -1,6 +1,6 @@
 # Rename `run edit` to `run stat` and allow to get or set stats
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 50
 - TAGS: feature
 

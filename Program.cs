@@ -87,6 +87,29 @@ while (true)
                 break;
             case Selection.ManualEntry:
                 (brain, history) = GetOrCreateBrain(arguments.SaveFile);
+                if (arguments.Run?.Edit is { Value: null, ManualEntry: var edit })
+                {
+                    var value = edit switch
+                    {
+                        ManualEntry.Name => brain.Name,
+                        ManualEntry.Days => brain.Days,
+                        ManualEntry.Mood => brain.Mood,
+                        ManualEntry.LastActivity => brain.LastActivity,
+                        ManualEntry.LastMoodCheck => brain.LastMoodCheck,
+                        ManualEntry.Breakfast => brain.Breakfast,
+                        ManualEntry.Lunch => brain.Lunch,
+                        ManualEntry.Dinner => brain.Dinner,
+                        ManualEntry.Plays => brain.Plays,
+                        ManualEntry.Fog => brain.Fog,
+                        ManualEntry.WinRoll => brain.DiceStats.Wins,
+                        ManualEntry.LosesRoll => brain.DiceStats.Loses,
+                        ManualEntry.WinDays => brain.DaysStats.Wins,
+                        ManualEntry.LosesDays => brain.DaysStats.Loses,
+                        _ => (object)"",
+                    };
+                    AnsiConsole.WriteLine(value.ToString()!);
+                    return;
+                }
                 while (Edit(brain))
                     Save(new(brain, history), arguments.SaveFile);
 
