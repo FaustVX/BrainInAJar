@@ -10,6 +10,7 @@ record class Arguments
     public bool AllowManualEdit { get; init; } = false;
     public FigletFont FigletFont { get; init; } = FigletFont.Default;
     public Run? Run { get; init; }
+    public string? NewName { get; private set; }
 
     public static async Task<Arguments> ParseAsync(string[] args)
     => Instance = args switch
@@ -19,6 +20,7 @@ record class Arguments
         ["--allow-manual-edit", .. var tail] => await ParseAsync(tail) with { AllowManualEdit = true },
         ["--figlet-font", var path, .. var tail] => await ParseAsync(tail) with { FigletFont = FigletFont.Load(await GetStream(path)) },
         ["run", .. var tail] when ParseRun(tail, out args) is var run => await ParseAsync(args) with { Run = run },
+        ["create", var name, .. var tail] => await ParseAsync(tail) with { NewName = name },
         [var path, .. var tail] when Path.GetExtension(path) == ".json" => await ParseAsync(tail) with { SaveFile = new(path) },
         _ => Help(),
     };

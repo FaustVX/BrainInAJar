@@ -9,6 +9,13 @@ using BrainInAJar.Components;
 
 var arguments = await Arguments.ParseAsync(args);
 
+if (arguments.NewName is {} newName)
+{
+    var brain = new Brain() { Name = newName };
+    Save(new(brain, []), arguments.SaveFile);
+    return;
+}
+
 Console.CancelKeyPress += (_, e) =>
 {
     Console.ResetColor();
