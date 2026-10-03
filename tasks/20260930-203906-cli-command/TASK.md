@@ -1,6 +1,6 @@
 # Use CLI to perform a single action then exit
 
-- STATUS: OPEN
+- STATUS: CLOSED
 - PRIORITY: 75
 - TAGS: feature
 
