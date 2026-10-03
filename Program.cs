@@ -278,7 +278,7 @@ while (true)
                 {
                     CarretMarkup = $"|{brain.FoodLevel + brain.Plays + (brain.Days - brain.Fog)}/{3 + 2 + brain.Days}|",
                 });
-                var breakdown = new Markup($"[{MealStyle(brain, Meal.Breakfast)}]Breakfast[/]-[{MealStyle(brain, Meal.Lunch)}]Lunch[/]-[{MealStyle(brain, Meal.Dinner)}]Dinner[/]");
+                var breakdown = new Markup($"{MealString(brain, Meal.Breakfast)} - {MealString(brain, Meal.Lunch)} - {MealString(brain, Meal.Dinner)}");
                 var food = new Columns(new Markup($"[{FoodLevelColor(brain)}]{brain.FoodLevel}/3[/]"), breakdown);
                 grid.AddRow(new Text("Food"), food);
                 grid.AddRow(new Text("Plays"), new Markup($"[{PlaysColor(brain)}]{brain.Plays}/2[/]"));
@@ -327,6 +327,18 @@ while (true)
             2 => "blue",
             3 => "green",
             _ => "default",
+        };
+
+        static string MealString(Brain brain, Meal meal)
+        => AnsiConsole.Console.Profile.Capabilities.Interactive ? $"[{MealStyle(brain, meal)}]{meal}[/]" : $"{MealCheck(brain, meal)}{meal}";
+
+        static string MealCheck(Brain brain, Meal meal)
+        => (brain[meal], Brain.CurrentMeal > meal, Brain.CurrentMeal == meal) switch
+        {
+            (true, _, _) => "V ",
+            (_, true, _) => "X ",
+            (_, _, true) => "> ",
+            _ => "",
         };
 
         static string MealStyle(Brain brain, Meal meal)
