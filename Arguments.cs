@@ -65,17 +65,19 @@ record class Arguments
     {
         return args switch
         {
-            ["eat", var a, var b, var c, var d, .. var tail] when ParseDice(a, b, c, d) is {} dice => CreateWithRefArgs(tail, out outer) with { Activity = Activity.Eat, Dice = dice },
-            ["eat", .. var tail] => CreateWithRefArgs(tail, out outer) with { Activity = Activity.Eat },
-            ["play", var a, var b, var c, var d, .. var tail] when ParseDice(a, b, c, d) is {} dice => CreateWithRefArgs(tail, out outer) with { Activity = Activity.Play, Dice = dice },
-            ["play", .. var tail] => CreateWithRefArgs(tail, out outer) with { Activity = Activity.Play },
-            ["clean", var a, var b, var c, var d, .. var tail] when ParseDice(a, b, c, d) is {} dice => CreateWithRefArgs(tail, out outer) with { Activity = Activity.Clean, Dice = dice },
-            ["clean", .. var tail] => CreateWithRefArgs(tail, out outer) with { Activity = Activity.Clean },
+            ["eat", .. var tail] => ParseArgs(tail, out outer) with { Activity = Activity.Eat },
+            ["play", .. var tail] => ParseArgs(tail, out outer) with { Activity = Activity.Play },
+            ["clean", .. var tail] => ParseArgs(tail, out outer) with { Activity = Activity.Clean },
             ["--help" or "-h"] or _ => HelpActivity(out outer),
         };
 
-        static DoActivity CreateWithRefArgs(string[] args, out string[] outer)
+        static DoActivity ParseArgs(string[] args, out string[] outer)
         {
+            if (args is [var a, var b, var c, var d, .. var tail] && ParseDice(a, b, c, d) is {} dice)
+            {
+                outer = tail;
+                return new() { Dice = dice };
+            }
             outer = args;
             return new();
         }
