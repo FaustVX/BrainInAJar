@@ -28,6 +28,7 @@
             "args": [
                 "publish",
                 "${workspaceFolder}/BrainInAJar.csproj",
+                "--configuration", "Release",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
