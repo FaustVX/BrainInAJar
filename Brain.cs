@@ -273,9 +273,15 @@ class Brain
 
         static bool SelectDice(int[] dice, out (int index, int value) die1, out (int index, int value) die2, out (int index, int value) die3, out (int index, int value) die4)
         {
-            if (Arguments.Instance.Run?.DoActivity?.Dice is {} sel)
+            if (Arguments.Instance.Run?.DoActivity?.Dice is [var reach, .. var sel])
             {
                 SelectDiceFromArgs(dice, sel, out die1, out die2, out die3, out die4);
+                if (reach != 0 && (die1.value + die2.value != reach || die3.value + die4.value != reach))
+                {
+                    AnsiConsole.MarkupLine($"You provided [red bold]invalid pairs[/]. Sum to reach: [blue]{reach}[/]. Pairs: [{(die1.value + die2.value == reach ? "green": "red")}]{die1.value}[/] + [{(die1.value + die2.value == reach ? "green": "red")}]{die2.value}[/] and [{(die3.value + die4.value == reach ? "green": "red")}]{die3.value}[/] + [{(die3.value + die4.value == reach ? "green": "red")}]{die4.value}[/]");
+                    Environment.Exit(1);
+                    throw new UnreachableException();
+                }
                 return true;
             }
             return SelectDiceFromInput(dice, out die1, out die2, out die3, out die4);

@@ -102,7 +102,7 @@ record class Arguments
 
         static DoActivity ParseArgs(string[] args, out string[] outer)
         {
-            if (args is [var a, var b, var c, var d, .. var tail] && ParseDice(a, b, c, d) is {} dice)
+            if (args is [var reach, var a, var b, var c, var d, .. var tail] && ParseDice(reach, a, b, c, d) is {} dice)
                 return CreateWithRefArgs(tail, out outer) with { Dice = dice };
             return CreateWithRefArgs(args, out outer);
         }
@@ -113,11 +113,12 @@ record class Arguments
             return new() { Activity = (Activity)(-1) };
         }
 
-        static int[]? ParseDice(string a, string b, string c, string d)
+        static int[]? ParseDice(string r, string a, string b, string c, string d)
         {
-            if (int.TryParse(a, out var d1) && int.TryParse(b, out  var d2) && int.TryParse(c, out var d3) && int.TryParse(d, out var d4)
+            if (int.TryParse(r, out var reach) && int.TryParse(a, out var d1) && int.TryParse(b, out  var d2) && int.TryParse(c, out var d3) && int.TryParse(d, out var d4)
+                && reach is >= 0 and <= 12
                 && d1 != d2 && d1 != d3 && d1 != d4 && d2 != d3 && d2 != d4 && d3 != d4) // All indices are mutualy exclusive
-                return [d1, d2, d3, d4];
+                return [reach, d1, d2, d3, d4];
             return null;
         }
     }
@@ -157,7 +158,7 @@ record class Arguments
     {
         outer = default!;
         AnsiConsole.MarkupLine($"Activity commands: [green]list[/]");
-        AnsiConsole.MarkupLine($"Activity commands: [green]eat[/]|[green]play[/]|[green]clean[/] [[<[blue]clean continuation code[/]>]] [[<[blue]d1[/]> <[blue]d2[/]> <[blue]d3[/]> <[blue]d4[/]>]]");
+        AnsiConsole.MarkupLine($"Activity commands: [green]eat[/]|[green]play[/]|[green]clean[/] [[<[blue]clean continuation code[/]>]] [[<[blue]pair sum (0, 2-12)[/]> <[blue]d1 (0-5)[/]> <[blue]d2 (0-5)[/]> <[blue]d3 (0-5)[/]> <[blue]d4 (0-5)[/]>]]");
         AnsiConsole.MarkupLine($"Activity dice are zero-based indices");
         Environment.Exit(0);
         throw new System.Diagnostics.UnreachableException();
