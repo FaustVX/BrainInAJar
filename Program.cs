@@ -66,7 +66,8 @@ while (true)
                     history = [brain, ..history];
                     brain = new() { Name = arguments.Run?.NextBrainName ?? AnsiConsole.Ask<string>("Your brain is [red bold]dead[/]. What is your new brain's name ?") };
                 }
-                AnsiConsole.Write(ShowStatus(brain));
+                if (arguments.Run is null)
+                    AnsiConsole.Write(ShowStatus(brain));
                 Save(new(brain, history), arguments.SaveFile);
 
                 if (arguments.Run is not null)
