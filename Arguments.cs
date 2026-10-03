@@ -3,6 +3,7 @@ using Spectre.Console;
 
 record class Arguments
 {
+    public const char CleanHashCodeStartChar = '@';
     private Arguments() {}
     public static Arguments Instance { get; private set; } = default!;
     public FileInfo SaveFile { get; init; } = new("save/BrainInAJar.json");
@@ -67,6 +68,7 @@ record class Arguments
         {
             ["eat", .. var tail] => ParseArgs(tail, out outer) with { Activity = Activity.Eat },
             ["play", .. var tail] => ParseArgs(tail, out outer) with { Activity = Activity.Play },
+            ["clean", [CleanHashCodeStartChar, ..{ Length: 8 } code] , .. var tail] => ParseArgs(tail, out outer) with { Activity = Activity.Clean, CleanCode = code },
             ["clean", .. var tail] => ParseArgs(tail, out outer) with { Activity = Activity.Clean },
             ["--help" or "-h"] or _ => HelpActivity(out outer),
         };
@@ -140,4 +142,5 @@ readonly struct DoActivity
 {
     public Activity Activity { get; init; }
     public int[]? Dice { get; init; }
+    public string? CleanCode { get; init; }
 }

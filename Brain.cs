@@ -142,6 +142,8 @@ class Brain
 
     public IEnumerable DoActivity()
     {
+        if (Arguments.Instance.Run?.DoActivity is { Activity: Activity.Clean, CleanCode: {} code } args && GetRandom(args.Activity).GetHexString(8) == code)
+            goto ReselectActivity;
         var errors = (wait1hour: false, nothingToDo: false);
         if (DateTime.Now.AddHours(-1) < LastActivity)
             errors.wait1hour = true;
@@ -236,10 +238,20 @@ class Brain
                     AnsiConsole.MarkupLine($"Fog: [blue]{Fog}[/]");
                     if (Fog > 0)
                     {
-                        LastActivity = DateTime.Now;
-                        yield return null;
-                        goto AfterClean;
+                        if (Arguments.Instance.Run?.DoActivity is null)
+                        {
+                            LastActivity = DateTime.Now;
+                            yield return null;
+                            goto AfterClean;
+                        }
+                        else if (Arguments.Instance.Run?.DoActivity is not null)
+                        {
+                            LastActivity = DateTime.Now;
+                            AnsiConsole.MarkupLine($"Clean continuation hash code: [blue]{Arguments.CleanHashCodeStartChar}{GetRandom(activity).GetHexString(8)}[/]");
+                            yield break;
+                        }
                     }
+
                     break;
                 case Activity.Play:
                     Plays++;

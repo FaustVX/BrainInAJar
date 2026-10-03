@@ -10,8 +10,11 @@
 - `run activity|edit`:
   - need to have an non-interactive way to use it, maybe with complex cli arguments
 
-- `run activity eat|play|clean`:
+- `run activity eat|play`:
   - print dice results
-- `run activity eat|play|clean <a> <b> <c> <d>`
-  - select the dice
-- need a way to reclean after success
+- `run activity eat|play <a> <b> <c> <d>`
+  - select the dice with 0-based dice indices
+- `run activity clean [<code>]`:
+  - print dice results
+- `run activity clean [<code>] <a> <b> <c> <d>`
+  - select the dice with 0-based dice indices and output a continuation code on matching pairs
