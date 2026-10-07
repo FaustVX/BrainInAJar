@@ -228,12 +228,16 @@ while (true)
                 return;
         }
 
-    static IRenderable ShowStatus(Brain brain)
+    IRenderable ShowStatus(Brain brain)
     {
         var grid = new Grid();
         grid.AddColumns(2);
         grid.AddRow("Created At", brain.CreatedAt.ToString());
-        grid.AddRow("Days", $"[{DaysColor(brain.Days)}]{brain.Days}[/]");
+        var maxDay = Enumerable.MaxBy([brain, ..history], b => b.Days)!.Days;
+        grid.AddRow(new Text("Days"), new Grid()
+                    .AddColumns(2)
+                    .AddRow(new Markup($"[{DaysColor(brain.Days)}]{brain.Days}/{maxDay}[/]"),
+                        new ProgressBar(brain.Days, maxDay)));
         if (brain.Mood is not Mood.Dead)
         {
             var now = DateTime.Now;
